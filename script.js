@@ -229,47 +229,20 @@ setTodaysMood();
 // ==========================================
 const musicTracks = [
     { 
-        title: 'Electronic Beats', 
+        title: 'My First Track', 
         genre: 'electronic',
-        artist: 'Artist Name',
+        artist: 'Your Name',
         file: 'music/track1.mp3',
         cover: 'images/cover1.jpg'
-    },
-    { 
-        title: 'Chill Waves', 
-        genre: 'chill',
-        artist: 'Artist Name',
-        file: 'music/track2.mp3',
-        cover: 'images/cover2.jpg'
-    },
-    { 
-        title: 'Rock Energy', 
-        genre: 'rock',
-        artist: 'Artist Name',
-        file: 'music/track3.mp3',
-        cover: 'images/cover3.jpg'
-    },
-    { 
-        title: 'Ambient Dreams', 
-        genre: 'ambient',
-        artist: 'Artist Name',
-        file: 'music/track4.mp3',
-        cover: 'images/cover4.jpg'
-    },
-    { 
-        title: 'Deep House', 
-        genre: 'electronic',
-        artist: 'Artist Name',
-        file: 'music/track5.mp3',
-        cover: 'images/cover5.jpg'
-    },
-    { 
-        title: 'Lofi Study', 
-        genre: 'chill',
-        artist: 'Artist Name',
-        file: 'music/track6.mp3',
-        cover: 'images/cover6.jpg'
     }
+    // Add more tracks here following the same format:
+    // { 
+    //     title: 'Song Title', 
+    //     genre: 'electronic', // or 'chill', 'rock', 'ambient'
+    //     artist: 'Artist Name',
+    //     file: 'music/track2.mp3',
+    //     cover: 'images/cover2.jpg'
+    // }
 ];
 
 // Current playing audio
