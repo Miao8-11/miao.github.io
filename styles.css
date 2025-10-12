@@ -1,0 +1,667 @@
+/* Custom Font */
+@font-face {
+    font-family: 'ByteBounce';
+    src: url('font/ByteBounce.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Variables */
+:root {
+    --c1: #244855;
+    --c2: #E64833;
+    --c3: #874F41;
+    --c4: #90AEAD;
+    --c5: #FBE9D0;
+    --bg: #0f1419;
+    --bg2: #1a2028;
+    --font-main: 'ByteBounce', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background: var(--bg);
+    color: var(--c5);
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Particles */
+#particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.15;
+}
+
+/* Rotating Cat */
+.rotating-cat {
+    position: fixed;
+    left: 3%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 50;
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
+}
+
+.rotating-cat img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.1s linear;
+    filter: drop-shadow(0 0 10px rgba(230, 72, 51, 0.3));
+}
+
+/* Navigation */
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(15, 20, 25, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(144, 174, 173, 0.1);
+}
+
+.nav-menu {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    list-style: none;
+    padding: 1.5rem;
+}
+
+.nav-menu a {
+    color: var(--c4);
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.nav-menu a:hover {
+    color: var(--c5);
+}
+
+/* Dots Navigation */
+.dots {
+    position: fixed;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(144, 174, 173, 0.3);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.dot.active {
+    background: var(--c2);
+    box-shadow: 0 0 10px var(--c2);
+}
+
+.dot:hover {
+    background: var(--c5);
+}
+
+/* Container */
+.container {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+}
+
+/* Sections */
+.section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: 5rem;
+}
+
+.section.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 10;
+}
+
+.section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.section::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.section::-webkit-scrollbar-thumb {
+    background: rgba(144, 174, 173, 0.3);
+    border-radius: 3px;
+}
+
+.section::-webkit-scrollbar-thumb:hover {
+    background: var(--c2);
+}
+
+.content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* About Section */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.profile-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 1;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+    border: 3px solid var(--c4);
+    box-shadow: 0 20px 60px rgba(230, 72, 51, 0.3);
+}
+
+.name-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    padding: 2rem 3rem;
+    background: rgba(15, 20, 25, 0.85);
+    backdrop-filter: blur(10px);
+    border: 3px solid var(--c2);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(230, 72, 51, 0.6),
+                0 0 20px rgba(230, 72, 51, 0.4),
+                inset 0 0 20px rgba(230, 72, 51, 0.1);
+}
+
+.title-main {
+    font-family: var(--font-main);
+    font-size: 5.5rem;
+    font-weight: 900;
+    color: var(--c5);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(251, 233, 208, 0.5),
+                 0 0 40px rgba(230, 72, 51, 0.3);
+}
+
+.bio {
+    font-size: 1.6rem;
+    color: var(--c4);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+.socials {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-link {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg2);
+    border: 2px solid var(--c4);
+    border-radius: 50%;
+    color: var(--c4);
+    transition: all 0.3s;
+}
+
+.social-link svg {
+    width: 24px;
+    height: 24px;
+}
+
+.social-link:hover {
+    background: var(--c2);
+    border-color: var(--c2);
+    color: var(--c5);
+    transform: translateY(-5px);
+}
+
+.video-wrap {
+    width: 100%;
+    height: 400px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid var(--c4);
+}
+
+.video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Section Title */
+.section-title {
+    font-family: var(--font-main);
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--c5);
+    text-align: center;
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+/* Mood Card */
+.mood-card {
+    background: var(--bg2);
+    border: 2px solid var(--c4);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto 3rem;
+}
+
+.mood-icon {
+    width: 60px;
+    height: 60px;
+    color: var(--c5);
+    margin-bottom: 1rem;
+}
+
+.mood-card h3 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.mood-genre {
+    color: var(--c2);
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.mood-desc {
+    color: var(--c4);
+    font-size: 1.1rem;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 1rem 2.5rem;
+    background: var(--bg2);
+    border: 2px solid var(--c4);
+    border-radius: 30px;
+    color: var(--c4);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.filter-btn:hover {
+    border-color: var(--c5);
+    color: var(--c5);
+}
+
+.filter-btn.active {
+    background: var(--c2);
+    border-color: var(--c2);
+    color: var(--c5);
+}
+
+/* Music Grid */
+.music-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    padding-bottom: 2rem;
+}
+
+.music-card {
+    background: var(--bg2);
+    border: 2px solid var(--c4);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.music-card:hover {
+    border-color: var(--c2);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(230, 72, 51, 0.3);
+}
+
+.music-card.playing {
+    border-color: var(--c2);
+    box-shadow: 0 0 30px rgba(230, 72, 51, 0.4);
+}
+
+/* Music Cover */
+.music-cover {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--c1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.play-btn {
+    width: 70px;
+    height: 70px;
+    background: rgba(230, 72, 51, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--c5);
+    transition: all 0.3s;
+    opacity: 0;
+}
+
+.music-cover:hover .play-btn {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.play-btn svg {
+    width: 30px;
+    height: 30px;
+    margin-left: 3px;
+}
+
+/* Music Info */
+.music-info-box {
+    padding: 1.5rem;
+}
+
+.track-title {
+    font-family: var(--font-main);
+    font-size: 1.6rem;
+    color: var(--c5);
+    margin-bottom: 0.5rem;
+}
+
+.track-artist {
+    font-size: 1.2rem;
+    color: var(--c4);
+    margin-bottom: 0.3rem;
+}
+
+.track-genre {
+    color: var(--c2);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Audio Player */
+.audio-player {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(144, 174, 173, 0.2);
+    border-radius: 3px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--c2);
+    transition: width 0.1s linear;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.control-btn {
+    background: transparent;
+    border: none;
+    color: var(--c5);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    color: var(--c2);
+    transform: scale(1.1);
+}
+
+.control-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.time-display {
+    font-size: 1.1rem;
+    color: var(--c4);
+    flex: 1;
+    text-align: center;
+}
+
+/* Photos Grid */
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    padding-bottom: 2rem;
+}
+
+.photo-card {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid var(--c4);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.photo-card:hover {
+    border-color: var(--c2);
+    transform: scale(1.02);
+}
+
+.photo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.photo-card:hover .photo-img {
+    transform: scale(1.1);
+}
+
+.photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(36, 72, 85, 0.95));
+    padding: 2rem;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+}
+
+.photo-card:hover .photo-overlay {
+    transform: translateY(0);
+}
+
+.photo-caption {
+    color: var(--c5);
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Games Grid */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2rem;
+    padding-bottom: 2rem;
+}
+
+.game-card {
+    position: relative;
+    height: 500px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid var(--c4);
+    transition: all 0.3s;
+}
+
+.game-card:hover {
+    border-color: var(--c2);
+    transform: translateY(-10px);
+}
+
+.game-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.game-card:hover .game-img {
+    transform: scale(1.1);
+}
+
+.game-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(15, 20, 25, 0.95));
+    padding: 2rem;
+}
+
+.game-title {
+    font-family: var(--font-main);
+    font-size: 2.5rem;
+    color: var(--c5);
+    margin-bottom: 1rem;
+}
+
+.game-desc {
+    color: var(--c4);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.game-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tag {
+    padding: 0.5rem 1.2rem;
+    background: rgba(144, 174, 173, 0.2);
+    border: 1px solid var(--c4);
+    border-radius: 20px;
+    font-size: 1rem;
+    color: var(--c5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .title-main {
+        font-size: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .music-grid,
+    .photos-grid,
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dots {
+        display: none;
+    }
+}
