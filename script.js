@@ -229,55 +229,182 @@ setTodaysMood();
 // ==========================================
 const musicTracks = [
     { 
-        title: 'Ascending: Rising Global Artists', 
+        title: 'Electronic Beats', 
         genre: 'electronic',
-        soundcloudUrl: 'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/1692024463&color=%23E64833&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true'
+        artist: 'Artist Name',
+        file: 'music/track1.mp3',
+        cover: 'images/cover1.jpg'
     },
-    { title: 'Chill Waves', genre: 'chill' },
-    { title: 'Rock Energy', genre: 'rock' },
-    { title: 'Ambient Dreams', genre: 'ambient' },
-    { title: 'Deep House', genre: 'electronic' },
-    { title: 'Lofi Study', genre: 'chill' },
-    { title: 'Indie Rock', genre: 'rock' },
-    { title: 'Space Ambient', genre: 'ambient' }
+    { 
+        title: 'Chill Waves', 
+        genre: 'chill',
+        artist: 'Artist Name',
+        file: 'music/track2.mp3',
+        cover: 'images/cover2.jpg'
+    },
+    { 
+        title: 'Rock Energy', 
+        genre: 'rock',
+        artist: 'Artist Name',
+        file: 'music/track3.mp3',
+        cover: 'images/cover3.jpg'
+    },
+    { 
+        title: 'Ambient Dreams', 
+        genre: 'ambient',
+        artist: 'Artist Name',
+        file: 'music/track4.mp3',
+        cover: 'images/cover4.jpg'
+    },
+    { 
+        title: 'Deep House', 
+        genre: 'electronic',
+        artist: 'Artist Name',
+        file: 'music/track5.mp3',
+        cover: 'images/cover5.jpg'
+    },
+    { 
+        title: 'Lofi Study', 
+        genre: 'chill',
+        artist: 'Artist Name',
+        file: 'music/track6.mp3',
+        cover: 'images/cover6.jpg'
+    }
 ];
+
+// Current playing audio
+let currentAudio = null;
+let currentPlayingCard = null;
 
 function loadMusic() {
     const grid = document.getElementById('musicGrid');
     grid.innerHTML = '';
     
-    musicTracks.forEach(track => {
+    musicTracks.forEach((track, index) => {
         const card = document.createElement('div');
         card.className = 'music-card';
         card.dataset.genre = track.genre;
+        card.dataset.index = index;
         
         card.innerHTML = `
-            <div class="music-visual">
-                <div class="equalizer">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
+            <div class="music-cover" style="background-image: url('${track.cover}')">
+                <div class="play-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
                 </div>
             </div>
-            <h4 class="track-title">${track.title}</h4>
-            <p class="track-genre">${track.genre.toUpperCase()}</p>
-            ${track.soundcloudUrl ? `
-                <div class="soundcloud-player">
-                    <iframe 
-                        width="100%" 
-                        height="166" 
-                        scrolling="no" 
-                        frameborder="no" 
-                        allow="autoplay"
-                        src="${track.soundcloudUrl}">
-                    </iframe>
+            <div class="music-info-box">
+                <h4 class="track-title">${track.title}</h4>
+                <p class="track-artist">${track.artist}</p>
+                <p class="track-genre">${track.genre.toUpperCase()}</p>
+            </div>
+            <div class="audio-player">
+                <audio src="${track.file}" preload="metadata"></audio>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
                 </div>
-            ` : ''}
+                <div class="controls">
+                    <button class="control-btn play-pause">
+                        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                        </svg>
+                    </button>
+                    <span class="time-display">0:00 / 0:00</span>
+                    <button class="control-btn volume-btn">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         `;
         
         grid.appendChild(card);
+        initAudioPlayer(card, track);
+    });
+}
+
+function initAudioPlayer(card, track) {
+    const audio = card.querySelector('audio');
+    const playPauseBtn = card.querySelector('.play-pause');
+    const playIcon = card.querySelector('.play-icon');
+    const pauseIcon = card.querySelector('.pause-icon');
+    const progressBar = card.querySelector('.progress-bar');
+    const progressFill = card.querySelector('.progress-fill');
+    const timeDisplay = card.querySelector('.time-display');
+    const playBtn = card.querySelector('.play-btn');
+    const volumeBtn = card.querySelector('.volume-btn');
+    
+    // Format time
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    // Update time display
+    audio.addEventListener('loadedmetadata', () => {
+        timeDisplay.textContent = `0:00 / ${formatTime(audio.duration)}`;
+    });
+    
+    // Update progress
+    audio.addEventListener('timeupdate', () => {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressFill.style.width = `${progress}%`;
+        timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+    });
+    
+    // Play/Pause toggle
+    function togglePlay() {
+        if (currentAudio && currentAudio !== audio) {
+            currentAudio.pause();
+            currentPlayingCard.querySelector('.play-icon').style.display = 'block';
+            currentPlayingCard.querySelector('.pause-icon').style.display = 'none';
+            currentPlayingCard.classList.remove('playing');
+        }
+        
+        if (audio.paused) {
+            audio.play();
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+            card.classList.add('playing');
+            currentAudio = audio;
+            currentPlayingCard = card;
+        } else {
+            audio.pause();
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+            card.classList.remove('playing');
+        }
+    }
+    
+    playPauseBtn.addEventListener('click', togglePlay);
+    playBtn.addEventListener('click', togglePlay);
+    
+    // Progress bar click
+    progressBar.addEventListener('click', (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = percent * audio.duration;
+    });
+    
+    // Volume toggle
+    volumeBtn.addEventListener('click', () => {
+        audio.muted = !audio.muted;
+        volumeBtn.style.opacity = audio.muted ? '0.5' : '1';
+    });
+    
+    // Auto pause when ended
+    audio.addEventListener('ended', () => {
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+        card.classList.remove('playing');
+        progressFill.style.width = '0%';
+        audio.currentTime = 0;
     });
 }
 
