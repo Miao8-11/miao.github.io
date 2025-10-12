@@ -56,6 +56,79 @@ window.addEventListener('resize', () => {
 });
 
 // ==========================================
+// ROTATING CAT ANIMATION
+// ==========================================
+class RotatingCat {
+    constructor() {
+        this.cat = document.getElementById('catImage');
+        this.rotation = 0;
+        this.velocity = 0;
+        this.friction = 0.95;
+        this.lastScrollTop = 0;
+        this.isSpinning = false;
+        
+        this.init();
+    }
+    
+    init() {
+        // Continuous animation loop
+        this.animate();
+    }
+    
+    animate() {
+        // Apply friction to velocity
+        this.velocity *= this.friction;
+        
+        // Update rotation
+        this.rotation += this.velocity;
+        
+        // Apply rotation
+        if (this.cat) {
+            this.cat.style.transform = `rotate(${this.rotation}deg)`;
+        }
+        
+        requestAnimationFrame(() => this.animate());
+    }
+    
+    onScroll(deltaY) {
+        // Add velocity based on scroll
+        this.velocity += deltaY * 0.5;
+    }
+    
+    spinTwice() {
+        if (this.isSpinning) return;
+        
+        this.isSpinning = true;
+        const targetRotation = this.rotation + 720; // 2 full rotations
+        const duration = 600; // milliseconds
+        const startTime = Date.now();
+        const startRotation = this.rotation;
+        
+        const spin = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function for smooth spin
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+            
+            this.rotation = startRotation + (720 * easeOutCubic);
+            
+            if (progress < 1) {
+                requestAnimationFrame(spin);
+            } else {
+                this.isSpinning = false;
+                this.velocity = 0;
+            }
+        };
+        
+        spin();
+    }
+}
+
+// Initialize rotating cat
+const rotatingCat = new RotatingCat();
+
+// ==========================================
 // FULLPAGE SCROLL SYSTEM
 // ==========================================
 class FullPageScroll {
@@ -107,6 +180,9 @@ class FullPageScroll {
     }
     
     handleWheel(e) {
+        // Rotate cat based on scroll
+        rotatingCat.onScroll(e.deltaY);
+        
         if (this.isScrolling) return;
         
         const activeSection = this.sections[this.current];
@@ -151,6 +227,9 @@ class FullPageScroll {
         if (index < 0 || index >= this.sections.length) return;
         
         this.isScrolling = true;
+        
+        // Spin cat twice when changing sections
+        rotatingCat.spinTwice();
         
         // Update sections
         this.sections[this.current].classList.remove('active');

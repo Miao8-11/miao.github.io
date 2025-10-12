@@ -1,3 +1,12 @@
+/* Custom Font */
+@font-face {
+    font-family: 'ByteBounce';
+    src: url('font/ByteBounce.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* Variables */
 :root {
     --c1: #244855;
@@ -7,6 +16,7 @@
     --c5: #FBE9D0;
     --bg: #0f1419;
     --bg2: #1a2028;
+    --font-main: 'ByteBounce', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 * {
@@ -16,7 +26,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-main);
     background: var(--bg);
     color: var(--c5);
     overflow: hidden;
@@ -32,6 +42,26 @@ body {
     height: 100%;
     z-index: 0;
     opacity: 0.15;
+}
+
+/* Rotating Cat */
+.rotating-cat {
+    position: fixed;
+    left: 3%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 50;
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
+}
+
+.rotating-cat img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.1s linear;
+    filter: drop-shadow(0 0 10px rgba(230, 72, 51, 0.3));
 }
 
 /* Navigation */
@@ -57,7 +87,7 @@ body {
 .nav-menu a {
     color: var(--c4);
     text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     font-weight: 500;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -174,16 +204,36 @@ body {
     box-shadow: 0 20px 60px rgba(230, 72, 51, 0.3);
 }
 
+.name-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    padding: 2rem 3rem;
+    background: rgba(15, 20, 25, 0.85);
+    backdrop-filter: blur(10px);
+    border: 3px solid var(--c2);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(230, 72, 51, 0.6),
+                0 0 20px rgba(230, 72, 51, 0.4),
+                inset 0 0 20px rgba(230, 72, 51, 0.1);
+}
+
 .title-main {
-    font-size: 4rem;
+    font-family: var(--font-main);
+    font-size: 5.5rem;
     font-weight: 900;
     color: var(--c5);
-    margin-bottom: 1.5rem;
+    margin: 0;
     line-height: 1;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(251, 233, 208, 0.5),
+                 0 0 40px rgba(230, 72, 51, 0.3);
 }
 
 .bio {
-    font-size: 1.3rem;
+    font-size: 1.6rem;
     color: var(--c4);
     line-height: 1.8;
     margin-bottom: 2rem;
@@ -235,7 +285,8 @@ body {
 
 /* Section Title */
 .section-title {
-    font-size: 3rem;
+    font-family: var(--font-main);
+    font-size: 4rem;
     font-weight: 900;
     color: var(--c5);
     text-align: center;
@@ -263,19 +314,22 @@ body {
 }
 
 .mood-card h3 {
-    font-size: 1.5rem;
+    font-size: 2.5rem;
     margin-bottom: 0.5rem;
+    font-weight: 700;
 }
 
 .mood-genre {
     color: var(--c2);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 2.2rem;
+    font-weight: 700;
     margin-bottom: 0.5rem;
+    text-transform: uppercase;
 }
 
 .mood-desc {
     color: var(--c4);
+    font-size: 1.1rem;
 }
 
 /* Filters */
@@ -288,7 +342,7 @@ body {
 }
 
 .filter-btn {
-    padding: 0.8rem 2rem;
+    padding: 1rem 2.5rem;
     background: var(--bg2);
     border: 2px solid var(--c4);
     border-radius: 30px;
@@ -297,7 +351,7 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     letter-spacing: 1px;
 }
 
@@ -383,20 +437,21 @@ body {
 }
 
 .track-title {
-    font-size: 1.3rem;
+    font-family: var(--font-main);
+    font-size: 1.6rem;
     color: var(--c5);
     margin-bottom: 0.5rem;
 }
 
 .track-artist {
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: var(--c4);
     margin-bottom: 0.3rem;
 }
 
 .track-genre {
     color: var(--c2);
-    font-size: 0.85rem;
+    font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -452,7 +507,7 @@ body {
 }
 
 .time-display {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     color: var(--c4);
     flex: 1;
     text-align: center;
@@ -509,7 +564,7 @@ body {
 
 .photo-caption {
     color: var(--c5);
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     font-weight: 600;
     text-align: center;
 }
@@ -557,7 +612,8 @@ body {
 }
 
 .game-title {
-    font-size: 2rem;
+    font-family: var(--font-main);
+    font-size: 2.5rem;
     color: var(--c5);
     margin-bottom: 1rem;
 }
@@ -566,6 +622,7 @@ body {
     color: var(--c4);
     margin-bottom: 1rem;
     line-height: 1.6;
+    font-size: 1.1rem;
 }
 
 .game-tags {
@@ -575,11 +632,11 @@ body {
 }
 
 .tag {
-    padding: 0.4rem 1rem;
+    padding: 0.5rem 1.2rem;
     background: rgba(144, 174, 173, 0.2);
     border: 1px solid var(--c4);
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: var(--c5);
 }
 
