@@ -1,4 +1,48 @@
 // ==========================================
+// THEME SWITCHER - 3个主题循环切换
+// ==========================================
+const themeToggle = document.getElementById('themeToggle');
+const body = document.body;
+
+// 主题列表
+const themes = ['default', 'amori', 'vibrant'];
+let currentThemeIndex = 0;
+
+// 从 localStorage 加载主题
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'amori') {
+    body.classList.add('theme-amori');
+    currentThemeIndex = 1;
+} else if (savedTheme === 'vibrant') {
+    body.classList.add('theme-vibrant');
+    currentThemeIndex = 2;
+}
+
+// 切换主题 - 3个主题循环
+themeToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    // 移除所有主题类
+    body.classList.remove('theme-amori', 'theme-vibrant');
+    
+    // 切换到下一个主题
+    currentThemeIndex = (currentThemeIndex + 1) % 3;
+    
+    if (currentThemeIndex === 1) {
+        body.classList.add('theme-amori');
+        localStorage.setItem('theme', 'amori');
+    } else if (currentThemeIndex === 2) {
+        body.classList.add('theme-vibrant');
+        localStorage.setItem('theme', 'vibrant');
+    } else {
+        localStorage.setItem('theme', 'default');
+    }
+    
+    // 更新粒子颜色
+    updateParticleColors();
+});
+
+// ==========================================
 // PARTICLE BACKGROUND
 // ==========================================
 const canvas = document.getElementById('particles');
@@ -28,11 +72,25 @@ class Particle {
     }
     
     draw() {
-        ctx.fillStyle = 'rgba(144, 174, 173, 0.5)';
+        const isAmori = body.classList.contains('theme-amori');
+        const isVibrant = body.classList.contains('theme-vibrant');
+        
+        let color = 'rgba(144, 174, 173, 0.5)'; // Default
+        if (isAmori) {
+            color = 'rgba(101, 205, 200, 0.5)'; // Amori 青绿
+        } else if (isVibrant) {
+            color = 'rgba(242, 183, 5, 0.5)'; // Vibrant 金黄
+        }
+        
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
     }
+}
+
+function updateParticleColors() {
+    // 粒子颜色会在下一帧自动更新
 }
 
 for (let i = 0; i < particleCount; i++) {
@@ -91,8 +149,8 @@ class RotatingCat {
     }
     
     onScroll(deltaY) {
-        // Add velocity based on scroll
-        this.velocity += deltaY * 0.5;
+        // Add velocity based on scroll (降低速度系数)
+        this.velocity += deltaY * 0.15;
     }
     
     spinTwice() {
@@ -136,6 +194,8 @@ class FullPageScroll {
         this.sections = document.querySelectorAll('.section');
         this.dots = document.querySelectorAll('.dot');
         this.navLinks = document.querySelectorAll('.nav-menu a');
+        this.bottomNav = document.getElementById('bottomNav');
+        this.bottomNavBtn = document.getElementById('bottomNavBtn');
         this.current = 0;
         this.isScrolling = false;
         
@@ -143,6 +203,16 @@ class FullPageScroll {
     }
     
     init() {
+        // Bottom nav button click
+        if (this.bottomNavBtn) {
+            this.bottomNavBtn.addEventListener('click', () => this.next());
+        }
+        
+        // Monitor scroll to show/hide bottom button
+        this.sections.forEach(section => {
+            section.addEventListener('scroll', () => this.checkBottomNav());
+        });
+        
         // Wheel event
         window.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
         
@@ -162,21 +232,62 @@ class FullPageScroll {
             });
         });
         
-        // Touch events
+        // Touch events - 改进移动端滚动检测
         let touchStart = 0;
+        let touchStartTime = 0;
+        
         window.addEventListener('touchstart', (e) => {
             touchStart = e.touches[0].clientY;
+            touchStartTime = Date.now();
+        });
+        
+        window.addEventListener('touchmove', (e) => {
+            // 允许section内部滚动
+            const activeSection = this.sections[this.current];
+            const touchCurrent = e.touches[0].clientY;
+            const diff = touchStart - touchCurrent;
+            
+            const atTop = activeSection.scrollTop === 0;
+            const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
+            
+            // 只在边界时阻止默认行为
+            if ((diff > 0 && atBottom) || (diff < 0 && atTop)) {
+                // 不阻止，让touchend处理
+            }
         });
         
         window.addEventListener('touchend', (e) => {
             const touchEnd = e.changedTouches[0].clientY;
             const diff = touchStart - touchEnd;
+            const touchDuration = Date.now() - touchStartTime;
             
-            if (Math.abs(diff) > 50) {
-                if (diff > 0) this.next();
-                else this.prev();
+            const activeSection = this.sections[this.current];
+            const atTop = activeSection.scrollTop === 0;
+            
+            // 只允许向上滑动（向下拉）时自动切换到上一个section
+            // 向下滑动（向上拉）需要点击底部按钮
+            if (Math.abs(diff) > 100 && touchDuration < 300) {
+                if (diff < 0 && atTop) {
+                    // 向下拉（向上切换section）
+                    this.prev();
+                }
+                // 向上拉不自动切换，需要点击底部按钮
             }
         });
+    }
+    
+    checkBottomNav() {
+        const activeSection = this.sections[this.current];
+        const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
+        const hasNext = this.current < this.sections.length - 1;
+        
+        if (this.bottomNav) {
+            if (atBottom && hasNext) {
+                this.bottomNav.classList.add('show');
+            } else {
+                this.bottomNav.classList.remove('show');
+            }
+        }
     }
     
     handleWheel(e) {
@@ -187,15 +298,14 @@ class FullPageScroll {
         
         const activeSection = this.sections[this.current];
         const atTop = activeSection.scrollTop === 0;
-        const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 1;
         
-        if (e.deltaY > 0 && atBottom) {
-            e.preventDefault();
-            this.next();
-        } else if (e.deltaY < 0 && atTop) {
+        // 只在向上滚动到顶部时自动切换到上一个section
+        if (e.deltaY < 0 && atTop) {
             e.preventDefault();
             this.prev();
         }
+        
+        // 向下滚动不自动切换，需要点击底部按钮
     }
     
     handleKeyboard(e) {
@@ -228,6 +338,11 @@ class FullPageScroll {
         
         this.isScrolling = true;
         
+        // Hide bottom nav during transition
+        if (this.bottomNav) {
+            this.bottomNav.classList.remove('show');
+        }
+        
         // Spin cat twice when changing sections
         rotatingCat.spinTwice();
         
@@ -247,6 +362,8 @@ class FullPageScroll {
         
         setTimeout(() => {
             this.isScrolling = false;
+            // Check if bottom nav should show after transition
+            this.checkBottomNav();
         }, 800);
     }
     
@@ -497,9 +614,10 @@ function loadPhotos() {
     const grid = document.getElementById('photosGrid');
     grid.innerHTML = '';
     
-    photos.forEach(photo => {
+    photos.forEach((photo, index) => {
         const card = document.createElement('div');
         card.className = 'photo-card';
+        card.dataset.photoIndex = index;
         
         card.innerHTML = `
             <img src="${photo.image}" alt="${photo.caption}" class="photo-img">
@@ -508,9 +626,59 @@ function loadPhotos() {
             </div>
         `;
         
+        // 点击照片打开灯箱
+        card.addEventListener('click', () => openLightbox(index));
+        
         grid.appendChild(card);
     });
 }
+
+// 灯箱功能
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxCaption = document.getElementById('lightboxCaption');
+const lightboxClose = document.getElementById('lightboxClose');
+
+function openLightbox(index) {
+    const photo = photos[index];
+    lightboxImg.src = photo.image;
+    lightboxImg.alt = photo.caption;
+    lightboxCaption.textContent = photo.caption;
+    
+    // 显示灯箱
+    lightbox.style.display = 'flex';
+    setTimeout(() => {
+        lightbox.classList.add('active');
+    }, 10);
+    
+    // 禁止背景滚动
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    lightbox.classList.remove('active');
+    setTimeout(() => {
+        lightbox.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// 关闭按钮
+lightboxClose.addEventListener('click', closeLightbox);
+
+// 点击背景关闭
+lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+        closeLightbox();
+    }
+});
+
+// ESC 键关闭
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+        closeLightbox();
+    }
+});
 
 loadPhotos();
 

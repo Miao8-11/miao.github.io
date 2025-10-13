@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catnip place</title>
+    <title>Personal Blog</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -31,6 +31,15 @@
         <span class="dot" data-section="1"></span>
         <span class="dot" data-section="2"></span>
         <span class="dot" data-section="3"></span>
+    </div>
+    
+    <!-- Bottom Navigation Button -->
+    <div class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav-btn" id="bottomNavBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M7 10l5 5 5-5z"/>
+            </svg>
+        </button>
     </div>
     
     <!-- Sections Container -->
@@ -71,6 +80,19 @@
                                     <polyline points="17 2 12 7 7 2"></polyline>
                                 </svg>
                             </a>
+                            <button class="social-link theme-toggle" id="themeToggle" title="Switch Theme">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="5"></circle>
+                                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -128,7 +150,15 @@
         
     </main>
     
+    <!-- Lightbox for Photos -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose">&times;</button>
+            <img src="" alt="" class="lightbox-img" id="lightboxImg">
+            <div class="lightbox-caption" id="lightboxCaption"></div>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
-
