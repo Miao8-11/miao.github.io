@@ -257,18 +257,21 @@ class FullPageScroll {
         });
         
         window.addEventListener('touchend', (e) => {
+            if (this.isScrolling) return;
+            
             const touchEnd = e.changedTouches[0].clientY;
             const diff = touchStart - touchEnd;
             const touchDuration = Date.now() - touchStartTime;
             
             const activeSection = this.sections[this.current];
             const atTop = activeSection.scrollTop === 0;
+            const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
             
-            // 只允许向上滑动（向下拉）时自动切换到上一个section
-            // 向下滑动（向上拉）需要点击底部按钮
-            if (Math.abs(diff) > 100 && touchDuration < 300) {
-                if (diff < 0 && atTop) {
-                    // 向下拉（向上切换section）
+            // 滑动阈值和时间检测
+            if (Math.abs(diff) > 80 && touchDuration < 400) {
+                if (diff < 0 && atTop && this.current > 0) {
+                    // 向下拉（切换到上一个section）
+                    e.preventDefault();
                     this.prev();
                 }
                 // 向上拉不自动切换，需要点击底部按钮

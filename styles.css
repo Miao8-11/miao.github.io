@@ -1049,6 +1049,15 @@ body.theme-amori .theme-toggle {
         display: none;
     }
     
+    /* 手机端 section 底部留空间（避免被浏览器操作栏遮挡） */
+    .section {
+        padding-bottom: 100px !important;
+    }
+    
+    .content {
+        padding-bottom: 80px;
+    }
+    
     .about-grid {
         grid-template-columns: 1fr;
         gap: 2rem;
@@ -1079,16 +1088,23 @@ body.theme-amori .theme-toggle {
     .music-grid,
     .games-grid {
         grid-template-columns: 1fr;
+        padding-bottom: 3rem;
     }
     
     /* 手机端照片两列显示 */
     .photos-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
+        padding-bottom: 3rem;
     }
     
     .dots {
         display: none;
+    }
+    
+    /* 为 iOS Safari 添加安全区域支持 */
+    .section {
+        padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
     }
 }
 
