@@ -12,11 +12,6 @@
     <!-- Particle Background -->
     <canvas id="particles"></canvas>
     
-    <!-- Rotating Cat -->
-    <div class="rotating-cat">
-        <img src="rotatingcat.png" alt="Cat" id="catImage">
-    </div>
-    
     <!-- Navigation -->
     <nav class="nav">
         <ul class="nav-menu">
@@ -60,7 +55,9 @@
                         </div>
                     </div>
                     <div class="about-right">
-                        <p class="bio">CIAO</p>
+                        <p class="bio">✨ Digital dreamer | Code enthusiast | Music lover<br>
+                        Creating pixel-perfect experiences one line at a time<br>
+                        🎮 Indie game addict | 🎵 Synthwave vibes | ☕ Powered by coffee</p>
                         <div class="socials">
                             <a href="#" class="social-link">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -147,10 +144,26 @@
             <div class="content">
                 <h2 class="section-title">Games</h2>
                 <div class="games-grid" id="gamesGrid"></div>
+                
+                <!-- Sleeping Cat -->
+                <div class="sleeping-cat-container">
+                    <div class="pat-me-label">pat me</div>
+                    <img src="sleepingcat.gif" alt="Sleeping Cat" class="sleeping-cat" id="sleepingCat">
+                </div>
             </div>
         </section>
         
     </main>
+    
+    <!-- Pet Hand Container - Outside sections to avoid transform context -->
+    <div class="pet-hand" id="petHand">
+        <img src="pethand.gif" alt="Pet Hand">
+    </div>
+    
+    <!-- Purring Cat Audio -->
+    <audio id="purringAudio" preload="auto">
+        <source src="purring-cat.mp3" type="audio/mpeg">
+    </audio>
     
     <!-- Lightbox for Photos -->
     <div class="lightbox" id="lightbox">

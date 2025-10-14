@@ -1,43 +1,22 @@
-/* Custom Font */
+/* Custom Font - Omori Game 2 */
 @font-face {
-    font-family: 'ByteBounce';
-    src: url('font/ByteBounce.ttf') format('truetype');
+    font-family: 'OmoriGame';
+    src: url('font/OMORI_GAME.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
 }
 
-/* Variables - Default Theme */
+@font-face {
+    font-family: 'OmoriGame2';
+    src: url('font/omori_game2.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Vibrant Dream Theme - 默认主题（鲜艳梦幻风格） */
 :root {
-    --c1: #244855;
-    --c2: #E64833;
-    --c3: #874F41;
-    --c4: #90AEAD;
-    --c5: #FBE9D0;
-    --bg: #0f1419;
-    --bg2: #1a2028;
-    --font-main: 'ByteBounce', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    
-    /* Theme transition */
-    --transition-speed: 0.6s;
-}
-
-/* Amori Dream Theme - 手绘独立游戏风格 */
-body.theme-amori {
-    --c1: #1A1B8D;  /* 深紫蓝 - 外轮廓色 */
-    --c2: #6421F2;  /* 梦幻紫 - 主色 */
-    --c3: #4B0DAF;  /* 深紫 - 渐变色 */
-    --c4: #65CDC8;  /* 青绿 - 强调色 */
-    --c5: #E8F4F8;  /* 浅蓝白 - 文字色 */
-    --bg: #0D0B2E;  /* 深紫夜空 */
-    --bg2: #1A1854; /* 紫色暗调 */
-    
-    /* 手绘风格滤镜 */
-    filter: contrast(1.1) saturate(1.2);
-}
-
-/* Vibrant Dream Theme - 鲜艳梦幻风格 */
-body.theme-vibrant {
     --c1: #0F18BF;  /* 深蓝 - 外轮廓色 */
     --c2: #F057F2;  /* 亮粉紫 - 主色 */
     --c3: #F24405;  /* 橙红 - 渐变色 */
@@ -45,48 +24,31 @@ body.theme-vibrant {
     --c5: #E4C2F2;  /* 淡紫 - 文字色 */
     --bg: #0A0D40;  /* 深蓝夜空 */
     --bg2: #1A1440; /* 深蓝紫暗调 */
+    --font-main: 'OmoriGame2', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     
     /* 手绘风格滤镜 */
     filter: contrast(1.1) saturate(1.3);
+    
+    /* Theme transition */
+    --transition-speed: 0.6s;
 }
 
-/* Vibrant 主题背景和效果 - 复用 Amori 的所有样式 */
-body.theme-vibrant::after {
-    content: '' !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 200vh !important;
-    background-image: url('background.jpg') !important;
-    background-size: 100% auto !important;
-    background-position: center top !important;
-    background-repeat: repeat-y !important;
-    opacity: 0.4 !important;
-    z-index: 1 !important;
-    animation: scrollBackground 60s linear infinite !important;
-    pointer-events: none !important;
-    mix-blend-mode: normal !important;
-    /* 高质量图片渲染 */
-    image-rendering: -webkit-optimize-contrast !important;
-    -webkit-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
-    will-change: transform !important;
+/* Pastel Dream Theme - 柔和梦幻风格 */
+body.theme-pastel {
+    --c1: #a168f9;  /* 紫罗兰 - 主色 */
+    --c2: #f6c0f8;  /* 粉紫 - 强调色 */
+    --c3: #c8a4e9;  /* 薰衣草紫 - 渐变色 */
+    --c4: #9ec5e2;  /* 天蓝 - 辅助色 */
+    --c5: #fefbff;  /* 近白 - 文字色 */
+    --bg: #2a1a3d;  /* 深紫背景 */
+    --bg2: #3d2654; /* 深紫暗调 */
+    
+    /* 柔和风格滤镜 */
+    filter: contrast(1.05) saturate(1.2) brightness(1.05);
 }
 
-body.theme-vibrant #particles {
-    opacity: 0.25;
-}
-
-body.theme-vibrant .rotating-cat img {
-    filter: drop-shadow(0 0 15px rgba(240, 87, 242, 0.6)) 
-            drop-shadow(0 0 30px rgba(242, 183, 5, 0.4));
-}
-
-/* Omori 风格滚动背景 - 2160x1620 高清显示 */
-body.theme-amori::after {
+/* 默认滚动背景 - 2160x1620 高清显示 */
+body::after {
     content: '' !important;
     position: fixed !important;
     top: 0 !important;
@@ -132,59 +94,134 @@ body {
     color: var(--c5);
     overflow: hidden;
     height: 100vh;
+    margin: 0;
+    padding: 0;
     transition: background var(--transition-speed) ease,
                 color var(--transition-speed) ease;
 }
 
-/* Amori 主题特殊效果 */
-body.theme-amori #particles {
+/* Hand-drawn style - slightly irregular text */
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: 0.5px;
+    transform: rotate(-0.5deg);
+}
+
+/* Add slight rotation to elements for hand-drawn feel */
+.music-card:nth-child(odd),
+.game-card:nth-child(odd) {
+    transform: rotate(0.5deg);
+}
+
+.music-card:nth-child(even),
+.game-card:nth-child(even) {
+    transform: rotate(-0.5deg);
+}
+
+/* 粒子效果 */
+#particles {
     opacity: 0.25;
 }
 
-body.theme-amori .rotating-cat img {
-    filter: drop-shadow(0 0 15px rgba(100, 33, 242, 0.6)) 
-            drop-shadow(0 0 30px rgba(101, 205, 200, 0.4));
+/* Pastel 主题特殊效果 */
+body.theme-pastel #particles {
+    opacity: 0.3;
 }
 
-/* Omori 主题不使用漂浮渐变背景 */
+body.theme-pastel::after {
+    opacity: 0.35 !important;
+    mix-blend-mode: lighten !important;
+    animation: scrollBackground 60s linear infinite !important;
+}
 
-/* 手绘风格边框 SVG */
-body.theme-amori .music-card,
-body.theme-amori .photo-card,
-body.theme-amori .game-card,
-body.theme-amori .mood-card,
-body.theme-amori .filter-btn,
-body.theme-amori .social-link,
-body.theme-amori .bottom-nav-btn,
-body.theme-amori .name-overlay,
-body.theme-amori .profile-img,
-body.theme-amori .video-wrap,
-body.theme-vibrant .music-card,
-body.theme-vibrant .photo-card,
-body.theme-vibrant .game-card,
-body.theme-vibrant .mood-card,
-body.theme-vibrant .filter-btn,
-body.theme-vibrant .social-link,
-body.theme-vibrant .bottom-nav-btn,
-body.theme-vibrant .name-overlay,
-body.theme-vibrant .profile-img,
-body.theme-vibrant .video-wrap {
-    border-radius: 0 !important;
+/* Pastel 主题渐变滤镜覆盖层 */
+body.theme-pastel::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(
+        135deg,
+        rgba(161, 104, 249, 0.15) 0%,
+        rgba(200, 164, 233, 0.12) 25%,
+        rgba(246, 192, 248, 0.15) 50%,
+        rgba(158, 197, 226, 0.12) 75%,
+        rgba(161, 104, 249, 0.15) 100%
+    );
+    z-index: 2;
+    pointer-events: none;
+    animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background: linear-gradient(
+            135deg,
+            rgba(161, 104, 249, 0.15) 0%,
+            rgba(200, 164, 233, 0.12) 25%,
+            rgba(246, 192, 248, 0.15) 50%,
+            rgba(158, 197, 226, 0.12) 75%,
+            rgba(161, 104, 249, 0.15) 100%
+        );
+    }
+    33% {
+        background: linear-gradient(
+            135deg,
+            rgba(246, 192, 248, 0.15) 0%,
+            rgba(161, 104, 249, 0.12) 25%,
+            rgba(158, 197, 226, 0.15) 50%,
+            rgba(200, 164, 233, 0.12) 75%,
+            rgba(246, 192, 248, 0.15) 100%
+        );
+    }
+    66% {
+        background: linear-gradient(
+            135deg,
+            rgba(158, 197, 226, 0.15) 0%,
+            rgba(246, 192, 248, 0.12) 25%,
+            rgba(200, 164, 233, 0.15) 50%,
+            rgba(161, 104, 249, 0.12) 75%,
+            rgba(158, 197, 226, 0.15) 100%
+        );
+    }
+    100% {
+        background: linear-gradient(
+            135deg,
+            rgba(161, 104, 249, 0.15) 0%,
+            rgba(200, 164, 233, 0.12) 25%,
+            rgba(246, 192, 248, 0.15) 50%,
+            rgba(158, 197, 226, 0.12) 75%,
+            rgba(161, 104, 249, 0.15) 100%
+        );
+    }
+}
+
+/* 手绘风格边框 - DoodleCSS 风格 */
+.music-card,
+.photo-card,
+.game-card,
+.mood-card,
+.filter-btn,
+.social-link,
+.bottom-nav-btn,
+.name-overlay,
+.profile-img,
+.video-wrap {
+    border-radius: 15px !important;
     border-style: solid !important;
     border-width: 3px !important;
     position: relative;
-    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3) !important;
 }
 
 /* 手绘波浪边框效果 */
-body.theme-amori .music-card::before,
-body.theme-amori .photo-card::before,
-body.theme-amori .game-card::before,
-body.theme-amori .mood-card::before,
-body.theme-vibrant .music-card::before,
-body.theme-vibrant .photo-card::before,
-body.theme-vibrant .game-card::before,
-body.theme-vibrant .mood-card::before {
+.music-card::before,
+.photo-card::before,
+.game-card::before,
+.mood-card::before {
     content: '';
     position: absolute;
     inset: -3px;
@@ -216,35 +253,40 @@ body.theme-vibrant .mood-card::before {
 }
 
 /* 手绘抖动效果 */
-body.theme-amori .music-card,
-body.theme-amori .photo-card,
-body.theme-amori .game-card,
-body.theme-vibrant .music-card,
-body.theme-vibrant .photo-card,
-body.theme-vibrant .game-card {
+.music-card,
+.photo-card,
+.game-card {
     transform: rotate(0.3deg);
 }
 
-body.theme-amori .music-card:nth-child(even),
-body.theme-amori .photo-card:nth-child(even),
-body.theme-amori .game-card:nth-child(even),
-body.theme-vibrant .music-card:nth-child(even),
-body.theme-vibrant .photo-card:nth-child(even),
-body.theme-vibrant .game-card:nth-child(even) {
+.music-card:nth-child(even),
+.photo-card:nth-child(even),
+.game-card:nth-child(even) {
     transform: rotate(-0.5deg);
 }
 
+/* 手绘悬停效果 - DoodleCSS 风格 */
+.music-card:hover {
+    transform: rotate(0deg) translateY(-5px) !important;
+    box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+.game-card:hover {
+    transform: rotate(0deg) translateY(-8px) !important;
+    box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+.photo-card:hover {
+    transform: rotate(0deg) translateY(-8px) scale(1.03) !important;
+    box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
 /* 手绘文字效果 */
-body.theme-amori .section-title,
-body.theme-amori .title-main,
-body.theme-amori .mood-card h3,
-body.theme-amori .track-title,
-body.theme-amori .game-title,
-body.theme-vibrant .section-title,
-body.theme-vibrant .title-main,
-body.theme-vibrant .mood-card h3,
-body.theme-vibrant .track-title,
-body.theme-vibrant .game-title {
+.section-title,
+.title-main,
+.mood-card h3,
+.track-title,
+.game-title {
     text-shadow: 2px 2px 0 var(--c1),
                  -1px -1px 0 var(--c4),
                  1px 1px 0 var(--c2) !important;
@@ -253,56 +295,44 @@ body.theme-vibrant .game-title {
 }
 
 /* 手绘按钮效果 */
-body.theme-amori .filter-btn,
-body.theme-vibrant .filter-btn {
+.filter-btn {
     border-radius: 20px !important;
     transform: rotate(-0.5deg);
     box-shadow: 3px 3px 0 var(--c1), 
                 -1px -1px 0 var(--c4);
 }
 
-body.theme-amori .filter-btn:hover,
-body.theme-vibrant .filter-btn:hover {
+.filter-btn:hover {
     transform: rotate(0.5deg) translateY(-2px);
     box-shadow: 4px 6px 0 var(--c1), 
                 -2px -1px 0 var(--c4);
 }
 
-body.theme-amori .filter-btn.active,
-body.theme-vibrant .filter-btn.active {
+.filter-btn.active {
     transform: rotate(1deg) scale(1.05);
     box-shadow: 2px 2px 0 var(--c2), 
                 -1px -1px 0 var(--c4);
 }
 
 /* 手绘底部按钮 */
-body.theme-amori .bottom-nav-btn,
-body.theme-vibrant .bottom-nav-btn {
+.bottom-nav-btn {
     border-radius: 50% 50% 0 0 !important;
     transform: rotate(-1deg);
-    box-shadow: 0 -3px 0 var(--c1),
-                0 -6px 15px rgba(100, 33, 242, 0.4) !important;
-}
-
-body.theme-vibrant .bottom-nav-btn {
     box-shadow: 0 -3px 0 var(--c1),
                 0 -6px 15px rgba(240, 87, 242, 0.4) !important;
 }
 
-body.theme-amori .bottom-nav-btn:hover,
-body.theme-vibrant .bottom-nav-btn:hover {
+.bottom-nav-btn:hover {
     transform: rotate(1deg) scale(1.05);
 }
 
 /* 手绘导航点 */
-body.theme-amori .dot,
-body.theme-vibrant .dot {
+.dot {
     border-radius: 40% 60% 50% 50% !important;
     transform: rotate(45deg);
 }
 
-body.theme-amori .dot.active,
-body.theme-vibrant .dot.active {
+.dot.active {
     border-radius: 50% 40% 60% 50% !important;
     transform: rotate(-45deg) scale(1.2);
     box-shadow: 0 0 10px var(--c2), 
@@ -310,14 +340,10 @@ body.theme-vibrant .dot.active {
 }
 
 /* 纸张纹理效果 */
-body.theme-amori .music-card,
-body.theme-amori .photo-card,
-body.theme-amori .game-card,
-body.theme-amori .mood-card,
-body.theme-vibrant .music-card,
-body.theme-vibrant .photo-card,
-body.theme-vibrant .game-card,
-body.theme-vibrant .mood-card {
+.music-card,
+.photo-card,
+.game-card,
+.mood-card {
     background-image: 
         repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px),
         repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px);
@@ -332,26 +358,6 @@ body.theme-vibrant .mood-card {
     height: 100%;
     z-index: 0;
     opacity: 0.15;
-}
-
-/* Rotating Cat */
-.rotating-cat {
-    position: fixed;
-    left: 3%;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 50;
-    width: 120px;
-    height: 120px;
-    pointer-events: none;
-}
-
-.rotating-cat img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: transform 0.1s linear;
-    filter: drop-shadow(0 0 10px rgba(230, 72, 51, 0.3));
 }
 
 /* Navigation */
@@ -495,6 +501,7 @@ body.theme-vibrant .mood-card {
     height: 100vh;
     width: 100%;
     z-index: 10;
+    overflow: hidden;
 }
 
 /* Sections */
@@ -746,7 +753,7 @@ body.theme-amori .theme-toggle {
 .filter-btn {
     padding: 1rem 2.5rem;
     background: var(--bg2);
-    border: 2px solid var(--c4);
+    border: 3px solid var(--c4);
     border-radius: 30px;
     color: var(--c4);
     font-weight: 600;
@@ -755,17 +762,23 @@ body.theme-amori .theme-toggle {
     text-transform: uppercase;
     font-size: 1.1rem;
     letter-spacing: 1px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+    transform: rotate(-0.5deg);
 }
 
 .filter-btn:hover {
     border-color: var(--c5);
     color: var(--c5);
+    transform: rotate(0.5deg) translateY(-2px);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
 }
 
 .filter-btn.active {
     background: var(--c2);
     border-color: var(--c2);
     color: var(--c5);
+    transform: rotate(1deg);
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Music Grid */
@@ -778,16 +791,17 @@ body.theme-amori .theme-toggle {
 
 .music-card {
     background: var(--bg2);
-    border: 2px solid var(--c4);
+    border: 3px solid var(--c4);
     border-radius: 20px;
     overflow: hidden;
     transition: all 0.3s;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
 }
 
 .music-card:hover {
     border-color: var(--c2);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(230, 72, 51, 0.3);
+    transform: translateY(-5px) rotate(0deg);
+    box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.3), 0 10px 30px rgba(230, 72, 51, 0.3);
 }
 
 .music-card.playing {
@@ -915,38 +929,60 @@ body.theme-amori .theme-toggle {
     text-align: center;
 }
 
-/* Photos Grid */
+/* Photos Grid - Sticky Notes Style */
 .photos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 2rem;
-    padding-bottom: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 3rem;
+    padding: 3rem 2rem 2rem;
 }
 
 .photo-card {
     position: relative;
     aspect-ratio: 1;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 3px solid var(--c4);
+    padding: 0;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.08);
+    transform: rotate(var(--rotation, 0deg));
+    overflow: hidden;
 }
 
+/* 随机旋转角度 */
+.photo-card:nth-child(1) { --rotation: 2deg; }
+.photo-card:nth-child(2) { --rotation: -3deg; }
+.photo-card:nth-child(3) { --rotation: 1deg; }
+.photo-card:nth-child(4) { --rotation: -2deg; }
+.photo-card:nth-child(5) { --rotation: 3deg; }
+.photo-card:nth-child(6) { --rotation: -1deg; }
+.photo-card:nth-child(7) { --rotation: 2deg; }
+.photo-card:nth-child(8) { --rotation: -2deg; }
+.photo-card:nth-child(9) { --rotation: 1deg; }
+
+/* 移除便利贴背景色 */
+
+/* 图钉已移除 */
+
 .photo-card:hover {
-    border-color: var(--c2);
-    transform: scale(1.02);
+    transform: rotate(0deg) translateY(-10px) scale(1.05);
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.2),
+        0 5px 15px rgba(0, 0, 0, 0.15);
+    z-index: 100;
 }
 
 .photo-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s;
+    border: none;
+    transition: transform 0.3s;
 }
 
 .photo-card:hover .photo-img {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .photo-overlay {
@@ -954,21 +990,22 @@ body.theme-amori .theme-toggle {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(transparent, rgba(36, 72, 85, 0.95));
-    padding: 2rem;
-    transform: translateY(100%);
-    transition: transform 0.3s;
-}
-
-.photo-card:hover .photo-overlay {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+    padding: 20px 15px;
     transform: translateY(0);
+    transition: none;
 }
 
 .photo-caption {
-    color: var(--c5);
+    color: #ffffff;
     font-size: 1.4rem;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: 0.5px;
 }
 
 /* Games Grid */
@@ -986,11 +1023,13 @@ body.theme-amori .theme-toggle {
     overflow: hidden;
     border: 3px solid var(--c4);
     transition: all 0.3s;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
 }
 
 .game-card:hover {
     border-color: var(--c2);
-    transform: translateY(-10px);
+    transform: translateY(-10px) rotate(0deg);
+    box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.3);
 }
 
 .game-img {
@@ -1042,11 +1081,105 @@ body.theme-amori .theme-toggle {
     color: var(--c5);
 }
 
+/* Sleeping Cat - Show on all devices */
+.sleeping-cat-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 3rem;
+    padding: 2rem 0;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.sleeping-cat {
+    width: 150px;
+    height: auto;
+    mix-blend-mode: multiply;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    opacity: 0.9;
+    cursor: pointer;
+    transition: transform 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.sleeping-cat:active {
+    transform: scale(0.95);
+}
+
+/* Pat Me Label */
+.pat-me-label {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--c2);
+    text-shadow: 2px 2px 0 var(--c1);
+    pointer-events: none;
+    animation: patMeFontSwitch 2.4s ease-in-out infinite;
+    z-index: 10;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+@keyframes patMeFontSwitch {
+    0%, 100% {
+        font-family: 'OmoriGame', sans-serif;
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        font-family: 'OmoriGame2', sans-serif;
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+/* Pet Hand */
+.pet-hand {
+    position: fixed;
+    width: 80px;
+    height: 80px;
+    pointer-events: none;
+    z-index: 999999;
+    left: -200px;
+    top: -200px;
+    display: none;
+}
+
+.pet-hand.active {
+    display: block !important;
+}
+
+.pet-hand img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    /* 手机端隐藏旋转猫咪 */
-    .rotating-cat {
-        display: none;
+    /* Sleeping Cat - already defined globally, no changes needed */
+    
+    .pat-me-label {
+        font-size: 1.5rem;
+        top: -35px;
+        left: 50%;
+    }
+    
+    .pet-hand {
+        width: 60px;
+        height: 60px;
     }
     
     /* 手机端 section 底部留空间（避免被浏览器操作栏遮挡） */
@@ -1091,11 +1224,25 @@ body.theme-amori .theme-toggle {
         padding-bottom: 3rem;
     }
     
-    /* 手机端照片两列显示 */
+    /* 手机端照片两列显示 - 保持便利贴风格 */
     .photos-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        padding-bottom: 3rem;
+        gap: 2rem;
+        padding: 2rem 1rem 3rem;
+    }
+    
+    .photo-card {
+        padding: 0;
+    }
+    
+    .photo-overlay {
+        padding: 15px 10px;
+    }
+    
+    .photo-caption {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #ffffff;
     }
     
     .dots {
@@ -1179,14 +1326,7 @@ body.theme-amori .theme-toggle {
 }
 
 .lightbox-caption {
-    position: absolute;
-    bottom: -60px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: var(--c5);
-    font-size: 1.5rem;
-    font-weight: 600;
+    display: none; /* 完全隐藏名字和背景 */
 }
 
 @media (max-width: 768px) {
@@ -1198,12 +1338,5 @@ body.theme-amori .theme-toggle {
         font-size: 2rem;
         width: 40px;
         height: 40px;
-    }
-    
-    .lightbox-caption {
-        bottom: 20px;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 1rem;
-        border-radius: 10px;
     }
 }

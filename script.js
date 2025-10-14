@@ -1,41 +1,35 @@
 // ==========================================
-// THEME SWITCHER - 3个主题循环切换
+// THEME SWITCHER - 2个主题切换
 // ==========================================
 const themeToggle = document.getElementById('themeToggle');
 const body = document.body;
 
-// 主题列表
-const themes = ['default', 'amori', 'vibrant'];
+// 主题列表：Vibrant (默认) 和 Pastel
+const themes = ['vibrant', 'pastel'];
 let currentThemeIndex = 0;
 
 // 从 localStorage 加载主题
 const savedTheme = localStorage.getItem('theme');
-if (savedTheme === 'amori') {
-    body.classList.add('theme-amori');
+if (savedTheme === 'pastel') {
+    body.classList.add('theme-pastel');
     currentThemeIndex = 1;
-} else if (savedTheme === 'vibrant') {
-    body.classList.add('theme-vibrant');
-    currentThemeIndex = 2;
 }
 
-// 切换主题 - 3个主题循环
+// 切换主题 - 2个主题循环
 themeToggle.addEventListener('click', (e) => {
     e.preventDefault();
     
-    // 移除所有主题类
-    body.classList.remove('theme-amori', 'theme-vibrant');
-    
     // 切换到下一个主题
-    currentThemeIndex = (currentThemeIndex + 1) % 3;
+    currentThemeIndex = (currentThemeIndex + 1) % 2;
     
     if (currentThemeIndex === 1) {
-        body.classList.add('theme-amori');
-        localStorage.setItem('theme', 'amori');
-    } else if (currentThemeIndex === 2) {
-        body.classList.add('theme-vibrant');
-        localStorage.setItem('theme', 'vibrant');
+        // 切换到 Pastel
+        body.classList.add('theme-pastel');
+        localStorage.setItem('theme', 'pastel');
     } else {
-        localStorage.setItem('theme', 'default');
+        // 切换回 Vibrant (默认)
+        body.classList.remove('theme-pastel');
+        localStorage.setItem('theme', 'vibrant');
     }
     
     // 更新粒子颜色
@@ -72,17 +66,11 @@ class Particle {
     }
     
     draw() {
-        const isAmori = body.classList.contains('theme-amori');
-        const isVibrant = body.classList.contains('theme-vibrant');
-        
-        let color = 'rgba(144, 174, 173, 0.5)'; // Default
-        if (isAmori) {
-            color = 'rgba(101, 205, 200, 0.5)'; // Amori 青绿
-        } else if (isVibrant) {
-            color = 'rgba(242, 183, 5, 0.5)'; // Vibrant 金黄
-        }
-        
-        ctx.fillStyle = color;
+        // 根据主题切换粒子颜色
+        const isPastel = body.classList.contains('theme-pastel');
+        ctx.fillStyle = isPastel 
+            ? 'rgba(158, 197, 226, 0.5)'  // Pastel 天蓝色
+            : 'rgba(242, 183, 5, 0.5)';   // Vibrant 金黄色
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
@@ -112,79 +100,6 @@ window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
-
-// ==========================================
-// ROTATING CAT ANIMATION
-// ==========================================
-class RotatingCat {
-    constructor() {
-        this.cat = document.getElementById('catImage');
-        this.rotation = 0;
-        this.velocity = 0;
-        this.friction = 0.95;
-        this.lastScrollTop = 0;
-        this.isSpinning = false;
-        
-        this.init();
-    }
-    
-    init() {
-        // Continuous animation loop
-        this.animate();
-    }
-    
-    animate() {
-        // Apply friction to velocity
-        this.velocity *= this.friction;
-        
-        // Update rotation
-        this.rotation += this.velocity;
-        
-        // Apply rotation
-        if (this.cat) {
-            this.cat.style.transform = `rotate(${this.rotation}deg)`;
-        }
-        
-        requestAnimationFrame(() => this.animate());
-    }
-    
-    onScroll(deltaY) {
-        // Add velocity based on scroll (降低速度系数)
-        this.velocity += deltaY * 0.15;
-    }
-    
-    spinTwice() {
-        if (this.isSpinning) return;
-        
-        this.isSpinning = true;
-        const targetRotation = this.rotation + 720; // 2 full rotations
-        const duration = 600; // milliseconds
-        const startTime = Date.now();
-        const startRotation = this.rotation;
-        
-        const spin = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Easing function for smooth spin
-            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-            
-            this.rotation = startRotation + (720 * easeOutCubic);
-            
-            if (progress < 1) {
-                requestAnimationFrame(spin);
-            } else {
-                this.isSpinning = false;
-                this.velocity = 0;
-            }
-        };
-        
-        spin();
-    }
-}
-
-// Initialize rotating cat
-const rotatingCat = new RotatingCat();
 
 // ==========================================
 // FULLPAGE SCROLL SYSTEM
@@ -294,9 +209,6 @@ class FullPageScroll {
     }
     
     handleWheel(e) {
-        // Rotate cat based on scroll
-        rotatingCat.onScroll(e.deltaY);
-        
         if (this.isScrolling) return;
         
         const activeSection = this.sections[this.current];
@@ -345,9 +257,6 @@ class FullPageScroll {
         if (this.bottomNav) {
             this.bottomNav.classList.remove('show');
         }
-        
-        // Spin cat twice when changing sections
-        rotatingCat.spinTwice();
         
         // Update sections
         this.sections[this.current].classList.remove('active');
@@ -428,20 +337,47 @@ setTodaysMood();
 // ==========================================
 const musicTracks = [
     { 
-        title: 'My First Track', 
+        title: 'Neon Dreams', 
         genre: 'electronic',
-        artist: 'Your Name',
+        artist: 'Synthwave Collective',
         file: 'music/track1.mp3',
         cover: 'images/cover1.jpg'
+    },
+    { 
+        title: 'Midnight Coffee', 
+        genre: 'chill',
+        artist: 'Lo-Fi Beats',
+        file: 'music/track2.mp3',
+        cover: 'images/cover2.jpg'
+    },
+    { 
+        title: 'Thunder Road', 
+        genre: 'rock',
+        artist: 'Electric Wolves',
+        file: 'music/track3.mp3',
+        cover: 'images/cover3.jpg'
+    },
+    { 
+        title: 'Celestial Drift', 
+        genre: 'ambient',
+        artist: 'Space Echoes',
+        file: 'music/track4.mp3',
+        cover: 'images/cover4.jpg'
+    },
+    { 
+        title: 'Pixel Paradise', 
+        genre: 'electronic',
+        artist: 'Retro Wave',
+        file: 'music/track5.mp3',
+        cover: 'images/cover5.jpg'
+    },
+    { 
+        title: 'Rainy Day Vibes', 
+        genre: 'chill',
+        artist: 'Chill Hop Nation',
+        file: 'music/track6.mp3',
+        cover: 'images/cover6.jpg'
     }
-    // Add more tracks here following the same format:
-    // { 
-    //     title: 'Song Title', 
-    //     genre: 'electronic', // or 'chill', 'rock', 'ambient'
-    //     artist: 'Artist Name',
-    //     file: 'music/track2.mp3',
-    //     cover: 'images/cover2.jpg'
-    // }
 ];
 
 // Current playing audio
@@ -605,12 +541,15 @@ loadMusic();
 // PHOTOS DATA
 // ==========================================
 const photos = [
-    { image: 'images/photo1.svg', caption: 'Sunset Vibes' },
-    { image: 'images/photo2.svg', caption: 'Ocean Dreams' },
-    { image: 'images/photo3.svg', caption: 'Mountain Peak' },
-    { image: 'images/photo4.svg', caption: 'City Lights' },
-    { image: 'images/photo5.svg', caption: 'Abstract Art' },
-    { image: 'images/photo6.svg', caption: 'Flowing Lines' }
+    { image: 'images/photo1.svg', caption: 'Tokyo Nights 🌃' },
+    { image: 'images/photo2.svg', caption: 'Coffee & Code ☕' },
+    { image: 'images/photo3.svg', caption: 'Pixel Perfect 🎮' },
+    { image: 'images/photo4.svg', caption: 'Neon Aesthetic 💜' },
+    { image: 'images/photo5.svg', caption: 'Retro Vibes 📼' },
+    { image: 'images/photo6.svg', caption: 'Digital Dreams ✨' },
+    { image: 'images/photo7.svg', caption: 'Synthwave Sunset 🌅' },
+    { image: 'images/photo8.svg', caption: 'Glitch Art 🎨' },
+    { image: 'images/photo9.svg', caption: 'Cyberpunk City 🏙️' }
 ];
 
 function loadPhotos() {
@@ -646,7 +585,7 @@ function openLightbox(index) {
     const photo = photos[index];
     lightboxImg.src = photo.image;
     lightboxImg.alt = photo.caption;
-    lightboxCaption.textContent = photo.caption;
+    lightboxCaption.textContent = ''; // 不显示图片名字
     
     // 显示灯箱
     lightbox.style.display = 'flex';
@@ -690,28 +629,40 @@ loadPhotos();
 // ==========================================
 const games = [
     {
-        title: 'Epic Adventure',
-        description: 'An epic journey through mystical lands filled with wonder and danger.',
+        title: 'Omori',
+        description: 'A surreal psychological horror RPG about a boy named Sunny and his journey through a dreamlike world.',
         image: 'images/game1.svg',
-        tags: ['RPG', 'Adventure', 'Fantasy']
+        tags: ['RPG', 'Horror', 'Indie']
     },
     {
-        title: 'Cyber Future',
-        description: 'A futuristic cyberpunk world where technology meets humanity.',
-        image: 'images/game1.svg',
-        tags: ['Action', 'Sci-Fi', 'Open World']
+        title: 'Hollow Knight',
+        description: 'Explore a vast interconnected underground kingdom filled with quirky characters and deadly beasts.',
+        image: 'images/game2.svg',
+        tags: ['Metroidvania', 'Action', 'Indie']
     },
     {
-        title: 'Retro Warriors',
-        description: 'Classic retro-style combat with modern mechanics.',
-        image: 'images/game1.svg',
-        tags: ['Platformer', 'Retro', 'Action']
+        title: 'Celeste',
+        description: 'Help Madeline survive her journey to the top of Celeste Mountain in this tight platformer.',
+        image: 'images/game3.svg',
+        tags: ['Platformer', 'Indie', 'Story']
     },
     {
-        title: 'Strategy Master',
-        description: 'Build your empire and conquer the world.',
-        image: 'images/game1.svg',
-        tags: ['Strategy', 'Simulation', 'War']
+        title: 'Stardew Valley',
+        description: 'Build the farm of your dreams, raise animals, grow crops, and become part of the community.',
+        image: 'images/game4.svg',
+        tags: ['Simulation', 'Farming', 'Relaxing']
+    },
+    {
+        title: 'Hades',
+        description: 'Defy the god of the dead as you hack and slash your way out of the Underworld.',
+        image: 'images/game5.svg',
+        tags: ['Roguelike', 'Action', 'Mythology']
+    },
+    {
+        title: 'Undertale',
+        description: 'A quirky RPG where nobody has to die. Your choices matter in this emotional journey.',
+        image: 'images/game6.svg',
+        tags: ['RPG', 'Indie', 'Bullet Hell']
     }
 ];
 
@@ -739,5 +690,243 @@ function loadGames() {
 }
 
 loadGames();
+
+// ==========================================
+// SLEEPING CAT INTERACTION
+// ==========================================
+const sleepingCat = document.getElementById('sleepingCat');
+const sleepingCatContainer = document.querySelector('.sleeping-cat-container');
+const petHand = document.getElementById('petHand');
+const purringAudio = document.getElementById('purringAudio');
+let isPetting = false;
+let isMobile = window.innerWidth <= 768;
+let fadeInterval = null;
+
+// 检测设备类型
+window.addEventListener('resize', () => {
+    isMobile = window.innerWidth <= 768;
+});
+
+function updatePetHandPosition(x, y) {
+    if (!petHand) return;
+    // 使用 pageX/pageY 考虑滚动位置
+    // fixed 定位使用的是视口坐标，所以直接用 clientX/clientY
+    petHand.style.left = x + 'px';
+    petHand.style.top = y + 'px';
+    petHand.style.transform = 'translate(-50%, -50%)';
+    console.log('Pet hand position - x:', x, 'y:', y);
+    console.log('Window scroll - x:', window.scrollX, 'y:', window.scrollY);
+}
+
+// 音频淡入淡出函数
+function fadeInAudio() {
+    if (!purringAudio) return;
+    
+    // 清除之前的淡出
+    if (fadeInterval) {
+        clearInterval(fadeInterval);
+        fadeInterval = null;
+    }
+    
+    // 从随机位置开始播放
+    if (purringAudio.duration) {
+        purringAudio.currentTime = Math.random() * purringAudio.duration;
+    }
+    
+    // 从 0 开始
+    purringAudio.volume = 0;
+    purringAudio.play().catch(e => console.log('Audio play failed:', e));
+    
+    // 淡入到 1.0，持续 500ms
+    const fadeInDuration = 500;
+    const steps = 20;
+    const stepTime = fadeInDuration / steps;
+    const volumeStep = 1.0 / steps;
+    let currentStep = 0;
+    
+    fadeInterval = setInterval(() => {
+        currentStep++;
+        purringAudio.volume = Math.min(currentStep * volumeStep, 1.0);
+        
+        if (currentStep >= steps) {
+            clearInterval(fadeInterval);
+            fadeInterval = null;
+        }
+    }, stepTime);
+    
+    console.log('Purring audio fade in started');
+}
+
+function fadeOutAudio() {
+    if (!purringAudio) return;
+    
+    // 清除之前的淡入
+    if (fadeInterval) {
+        clearInterval(fadeInterval);
+        fadeInterval = null;
+    }
+    
+    // 淡出到 0，持续 500ms
+    const fadeOutDuration = 500;
+    const steps = 20;
+    const stepTime = fadeOutDuration / steps;
+    const startVolume = purringAudio.volume;
+    const volumeStep = startVolume / steps;
+    let currentStep = 0;
+    
+    fadeInterval = setInterval(() => {
+        currentStep++;
+        purringAudio.volume = Math.max(startVolume - (currentStep * volumeStep), 0);
+        
+        if (currentStep >= steps) {
+            clearInterval(fadeInterval);
+            fadeInterval = null;
+            purringAudio.pause();
+            console.log('Purring audio fade out completed');
+        }
+    }, stepTime);
+    
+    console.log('Purring audio fade out started');
+}
+
+if (sleepingCat && sleepingCatContainer && petHand) {
+    console.log('=== Initialization ===');
+    console.log('Sleeping cat and pet hand found!');
+    console.log('Is mobile:', isMobile);
+    console.log('Window width:', window.innerWidth);
+    console.log('Pet hand element:', petHand);
+    
+    // 初始化 pet hand 位置
+    petHand.style.left = '-200px';
+    petHand.style.top = '-200px';
+    petHand.style.display = 'none';
+    
+    console.log('Initial pet hand img src:', petHand.querySelector('img').src);
+    
+    // 桌面端：按住左键跟随光标（整个容器区域）
+    sleepingCatContainer.addEventListener('mousedown', (e) => {
+        if (isMobile) return;
+        console.log('=== Mouse down on cat (desktop) ===');
+        e.preventDefault();
+        e.stopPropagation();
+        isPetting = true;
+        
+        // 显示手
+        petHand.classList.add('active');
+        petHand.style.display = 'block';
+        
+        // 开始播放呼噜声并淡入
+        fadeInAudio();
+        
+        updatePetHandPosition(e.clientX, e.clientY);
+        
+        // 延迟检查，确保 DOM 更新
+        setTimeout(() => {
+            console.log('Pet hand after show:', {
+                display: window.getComputedStyle(petHand).display,
+                left: petHand.style.left,
+                top: petHand.style.top,
+                zIndex: window.getComputedStyle(petHand).zIndex,
+                classList: petHand.classList.toString(),
+                imgSrc: petHand.querySelector('img').src
+            });
+        }, 50);
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isPetting && !isMobile) {
+            updatePetHandPosition(e.clientX, e.clientY);
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (!isMobile && isPetting) {
+            console.log('Mouse up (desktop)');
+            isPetting = false;
+            petHand.classList.remove('active');
+            petHand.style.display = 'none';
+            
+            // 淡出呼噜声
+            fadeOutAudio();
+        }
+    });
+    
+    // 移动端：按住跟随（和桌面端一样，整个容器区域）
+    let isTouching = false;
+    
+    sleepingCatContainer.addEventListener('touchstart', (e) => {
+        console.log('=== Touch start on cat container ===');
+        console.log('Is mobile check:', isMobile);
+        console.log('Event type:', e.type);
+        e.preventDefault();
+        e.stopPropagation();
+        
+        isTouching = true;
+        
+        const touch = e.touches[0];
+        const x = touch.clientX;
+        const y = touch.clientY;
+        
+        console.log('Touch position - x:', x, 'y:', y);
+        console.log('Touch pageX/pageY:', touch.pageX, touch.pageY);
+        
+        // 显示手
+        petHand.classList.add('active');
+        petHand.style.display = 'block';
+        
+        // 开始播放呼噜声并淡入
+        fadeInAudio();
+        
+        updatePetHandPosition(x, y);
+        
+        console.log('Pet hand should be visible now');
+        console.log('Pet hand display:', petHand.style.display);
+        console.log('Pet hand classList:', petHand.classList.toString());
+    });
+    
+    // 移动端：跟随手指移动
+    document.addEventListener('touchmove', (e) => {
+        if (isTouching) {
+            console.log('Touch move');
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const x = touch.clientX;
+            const y = touch.clientY;
+            
+            updatePetHandPosition(x, y);
+        }
+    }, { passive: false });
+    
+    // 移动端：松开隐藏
+    document.addEventListener('touchend', (e) => {
+        if (isTouching) {
+            console.log('Touch end');
+            isTouching = false;
+            petHand.classList.remove('active');
+            petHand.style.display = 'none';
+            
+            // 淡出呼噜声
+            fadeOutAudio();
+        }
+    });
+    
+    document.addEventListener('touchcancel', (e) => {
+        if (isTouching) {
+            console.log('Touch cancel');
+            isTouching = false;
+            petHand.classList.remove('active');
+            petHand.style.display = 'none';
+            
+            // 淡出呼噜声
+            fadeOutAudio();
+        }
+    });
+} else {
+    console.error('Sleeping cat or pet hand not found!', {
+        sleepingCat: sleepingCat,
+        petHand: petHand
+    });
+}
 
 console.log('%c✨ Personal Blog Loaded', 'color: #FBE9D0; font-size: 16px; font-weight: bold;');
