@@ -1178,8 +1178,8 @@ body.theme-amori .theme-toggle {
     }
     
     .pet-hand {
-        width: 60px;
-        height: 60px;
+        width: 100px;
+        height: 100px;
     }
     
     /* 手机端 section 底部留空间（避免被浏览器操作栏遮挡） */
