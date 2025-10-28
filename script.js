@@ -307,7 +307,7 @@ const moods = {
         color: '#E64833',
         description: 'Feeling energetic and futuristic'
     },
-    chill: {
+    ForYou: {
         color: '#90AEAD',
         description: 'Relaxed and peaceful vibes'
     },
@@ -337,16 +337,16 @@ setTodaysMood();
 // ==========================================
 const musicTracks = [
     { 
-        title: 'Neon Dreams', 
-        genre: 'electronic',
-        artist: 'Synthwave Collective',
+        title: 'Something stupid', 
+        genre: 'ForYou',
+        artist: 'Frank Sinatra',
         file: 'music/track1.mp3',
         cover: 'images/cover1.jpg'
     },
     { 
-        title: 'Midnight Coffee', 
-        genre: 'chill',
-        artist: 'Lo-Fi Beats',
+        title: 'did i tell you that i miss you', 
+        genre: 'ForYou',
+        artist: 'adore',
         file: 'music/track2.mp3',
         cover: 'images/cover2.jpg'
     },
