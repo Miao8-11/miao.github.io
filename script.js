@@ -373,7 +373,7 @@ const musicTracks = [
     },
     { 
         title: 'Rainy Day Vibes', 
-        genre: 'chill',
+        genre: 'ForYou',
         artist: 'Chill Hop Nation',
         file: 'music/track6.mp3',
         cover: 'images/cover6.jpg'
