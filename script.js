@@ -307,9 +307,9 @@ const moods = {
         color: '#E64833',
         description: 'Feeling energetic and futuristic'
     },
-    ForYou: {
+    for_you: {
         color: '#90AEAD',
-        description: 'Relaxed and peaceful vibes'
+        description: 'Handpicked songs just for you'
     },
     rock: {
         color: '#874F41',
@@ -336,48 +336,39 @@ setTodaysMood();
 // MUSIC DATA
 // ==========================================
 const musicTracks = [
-    { 
-        title: 'Something stupid', 
-        genre: 'ForYou',
-        artist: 'Frank Sinatra',
-        file: 'music/track1.mp3',
-        cover: 'images/cover1.jpg'
-    },
-    { 
-        title: 'did i tell you that i miss you', 
-        genre: 'ForYou',
-        artist: 'adore',
-        file: 'music/track2.mp3',
-        cover: 'images/cover2.jpg'
-    },
-    { 
-        title: 'Thunder Road', 
-        genre: 'rock',
-        artist: 'Electric Wolves',
-        file: 'music/track3.mp3',
-        cover: 'images/cover3.jpg'
-    },
-    { 
-        title: 'Celestial Drift', 
-        genre: 'ambient',
-        artist: 'Space Echoes',
-        file: 'music/track4.mp3',
-        cover: 'images/cover4.jpg'
-    },
-    { 
-        title: 'Pixel Paradise', 
-        genre: 'electronic',
-        artist: 'Retro Wave',
-        file: 'music/track5.mp3',
-        cover: 'images/cover5.jpg'
-    },
-    { 
-        title: 'Rainy Day Vibes', 
-        genre: 'ForYou',
-        artist: 'Chill Hop Nation',
-        file: 'music/track6.mp3',
-        cover: 'images/cover6.jpg'
-    }
+    { title: "Somethin' Stupid", artist: 'Frank & Nancy Sinatra', genre: 'for_you', file: 'music/track1.mp3', cover: 'images/cover1.jpg' },
+    { title: 'Plastic Love', artist: 'Mariya Takeuchi', genre: 'for_you', file: 'music/track2.mp3', cover: 'images/cover2.jpg' },
+    { title: 'Where Have You Been', artist: 'Rihanna', genre: 'for_you', file: 'music/track3.mp3', cover: 'images/cover3.jpg' },
+    { title: 'Piccola stella', artist: 'Ultimo', genre: 'for_you', file: 'music/track4.mp3', cover: 'images/cover4.jpg' },
+    { title: 'If Not for You', artist: 'Måneskin', genre: 'for_you', file: 'music/track5.mp3', cover: 'images/cover5.jpg' },
+    { title: 'La boda', artist: 'Camilo', genre: 'for_you', file: 'music/track6.mp3', cover: 'images/cover6.jpg' },
+    { title: "Nothing's Gonna Hurt You Baby", artist: 'Cigarettes After Sex', genre: 'for_you', file: 'music/track7.mp3', cover: 'images/cover7.jpg' },
+    { title: "Let's Skip to the Wedding", artist: 'Eyedress', genre: 'for_you', file: 'music/track8.mp3', cover: 'images/cover8.jpg' },
+    { title: 'Heaven Can Wait', artist: 'Michael Jackson', genre: 'for_you', file: 'music/track9.mp3', cover: 'images/cover9.jpg' },
+    { title: 'Intolewd', artist: 'Matt Maltese', genre: 'for_you', file: 'music/track10.mp3', cover: 'images/cover10.jpg' },
+    { title: "All I'm Looking For", artist: 'Lea Rockrose', genre: 'for_you', file: 'music/track11.mp3', cover: 'images/cover11.jpg' },
+    { title: 'Cupid’s Chokehold', artist: 'Gym Class Heroes', genre: 'for_you', file: 'music/track12.mp3', cover: 'images/cover12.jpg' },
+    { title: 'Cherry Waves', artist: 'Deftones', genre: 'for_you', file: 'music/track13.mp3', cover: 'images/cover13.jpg' },
+    { title: 'Heart to Heart', artist: 'Mac DeMarco', genre: 'for_you', file: 'music/track14.mp3', cover: 'images/cover14.jpg' },
+    { title: 'Impacto', artist: 'Enjambre', genre: 'for_you', file: 'music/track15.mp3', cover: 'images/cover15.jpg' },
+    { title: 'Fly Me to the Moon', artist: 'Frank Sinatra', genre: 'for_you', file: 'music/track16.mp3', cover: 'images/cover16.jpg' },
+    { title: 'Things That Make It Warm', artist: 'Cavetown', genre: 'for_you', file: 'music/track17.mp3', cover: 'images/cover17.jpg' },
+    { title: 'Just the Two of Us', artist: 'Bill Withers', genre: 'for_you', file: 'music/track18.mp3', cover: 'images/cover18.jpg' },
+    { title: 'Something About You', artist: 'Eyedress & Dent May', genre: 'for_you', file: 'music/track19.mp3', cover: 'images/cover19.jpg' },
+    { title: 'you.', artist: 'Oscar Lang', genre: 'for_you', file: 'music/track20.mp3', cover: 'images/cover20.jpg' },
+    { title: 'For the First Time', artist: 'Mac DeMarco', genre: 'for_you', file: 'music/track21.mp3', cover: 'images/cover21.jpg' },
+    { title: 'Everyone Adores You (At Least I Do)', artist: 'Matt Maltese', genre: 'for_you', file: 'music/track22.mp3', cover: 'images/cover22.jpg' },
+    { title: 'Frog', artist: 'Cavetown', genre: 'for_you', file: 'music/track23.mp3', cover: 'images/cover23.jpg' },
+    { title: 'Stay With Me', artist: 'Miki Matsubara', genre: 'for_you', file: 'music/track24.mp3', cover: 'images/cover24.jpg' },
+    { title: 'we fell in love in october', artist: 'girl in red', genre: 'for_you', file: 'music/track25.mp3', cover: 'images/cover25.jpg' },
+    { title: 'Golden Brown', artist: 'The Stranglers', genre: 'for_you', file: 'music/track26.mp3', cover: 'images/cover26.jpg' },
+    { title: 'I Love You', artist: 'Fontaines D.C.', genre: 'for_you', file: 'music/track27.mp3', cover: 'images/cover27.jpg' },
+    { title: "Can't Take My Eyes Off You", artist: 'Frankie Valli', genre: 'for_you', file: 'music/track28.mp3', cover: 'images/cover28.jpg' },
+    { title: 'Pretty Boy', artist: 'The Neighbourhood', genre: 'for_you', file: 'music/track29.mp3', cover: 'images/cover29.jpg' },
+    { title: 'did i tell you that i miss you', artist: 'Adore', genre: 'for_you', file: 'music/track30.mp3', cover: 'images/cover30.jpg' },
+    { title: 'Dream girl', artist: 'Cruisant', genre: 'for_you', file: 'music/track31.mp3', cover: 'images/cover31.jpg' },
+    { title: 'Until I found you', artist: 'Stephen Sanchez', genre: 'for_you', file: 'music/track32.mp3', cover: 'images/cover32.jpg' },
+    { title: 'Hey lover', artist: 'The Daughters of Eve', genre: 'for_you', file: 'music/track33.mp3', cover: 'images/cover33.jpg' }
 ];
 
 // Current playing audio
@@ -394,8 +385,18 @@ function loadMusic() {
         card.dataset.genre = track.genre;
         card.dataset.index = index;
         
+        // 封面映射：第1首保持原样；第2-30首映射到 cover2.jpg ~ cover30.jpg
+        const coverPath = index >= 1
+            ? `images/cover${index + 1}.jpg`
+            : (track.cover || 'images/cover1.jpg');
+        
+        // 音频映射：第1首使用 track1.mp3；第2-30首使用 track2.mp3 ~ track30.mp3
+        const audioPath = index === 0
+            ? 'music/track1.mp3'
+            : `music/track${index + 1}.mp3`;
+        
         card.innerHTML = `
-            <div class="music-cover" style="background-image: url('${track.cover}')">
+            <div class="music-cover" style="background-image: url('${coverPath}')">
                 <div class="play-btn">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M8 5v14l11-7z"/>
@@ -408,7 +409,7 @@ function loadMusic() {
                 <p class="track-genre">${track.genre.toUpperCase()}</p>
             </div>
             <div class="audio-player">
-                <audio src="${track.file}" preload="metadata"></audio>
+                <audio src="${audioPath}" preload="metadata"></audio>
                 <div class="progress-bar">
                     <div class="progress-fill"></div>
                 </div>
@@ -526,10 +527,11 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         const cards = document.querySelectorAll('.music-card');
         
         cards.forEach(card => {
-            if (filter === 'all' || card.dataset.genre === filter) {
-                card.style.display = 'block';
+            const match = (filter === 'all' || card.dataset.genre === filter);
+            if (match) {
+                card.classList.remove('hidden');
             } else {
-                card.style.display = 'none';
+                card.classList.add('hidden');
             }
         });
     });
@@ -930,3 +932,79 @@ if (sleepingCat && sleepingCatContainer && petHand) {
 }
 
 console.log('%c✨ Personal Blog Loaded', 'color: #FBE9D0; font-size: 16px; font-weight: bold;');
+
+// ==========================================
+// RANDOM SOUND EFFECTS SYSTEM
+// ==========================================
+const soundBtn = document.getElementById('soundBtn');
+
+// Lista file effetti sonori - Puoi aggiungere più file audio nella cartella button_sound
+const soundEffects = [
+    'button_sound/click1.mp3',
+    'button_sound/click2.mp3',
+    'button_sound/click3.mp3',
+    'button_sound/beep1.mp3',
+    'button_sound/beep2.mp3',
+    'button_sound/chime1.mp3',
+    'button_sound/chime2.mp3',
+    'button_sound/ding1.mp3',
+    'button_sound/ding2.mp3',
+    'button_sound/pop1.mp3',
+    'button_sound/pop2.mp3',
+    'button_sound/woosh1.mp3',
+    'button_sound/woosh2.mp3'
+];
+
+// Riproduci effetto sonoro casuale
+function playRandomSound() {
+    if (soundEffects.length === 0) {
+        console.log('Nessun file audio disponibile');
+        return;
+    }
+    
+    // Scegli un effetto sonoro casuale
+    const randomIndex = Math.floor(Math.random() * soundEffects.length);
+    const soundFile = soundEffects[randomIndex];
+    
+    // Crea elemento audio e riproduci
+    const audio = new Audio(soundFile);
+    audio.volume = 0.7; // Imposta volume al 70%
+    
+    // Riproduci effetto sonoro
+    audio.play().catch(error => {
+        console.log('Riproduzione effetto sonoro fallita:', error);
+        // Se il file audio non esiste, prova a riprodurre un effetto sonoro di sistema semplice
+        try {
+            const fallbackAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBS13yO/eizEIHWq+8+OWT');
+            fallbackAudio.volume = 0.3;
+            fallbackAudio.play();
+        } catch (fallbackError) {
+            console.log('Anche l\'effetto sonoro di riserva è fallito:', fallbackError);
+        }
+    });
+    
+    console.log('Riproduzione effetto sonoro:', soundFile);
+}
+
+// Aggiungi evento click al bottone effetti sonori
+if (soundBtn) {
+    soundBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Aggiungi effetto animazione al click
+        soundBtn.style.transform = 'translateY(-5px) scale(0.95)';
+        
+        // Riproduci effetto sonoro casuale
+        playRandomSound();
+        
+        // Ripristina stato del bottone
+        setTimeout(() => {
+            soundBtn.style.transform = '';
+        }, 150);
+    });
+    
+    console.log('Bottone effetti sonori inizializzato');
+} else {
+    console.error('Bottone effetti sonori non trovato');
+}
