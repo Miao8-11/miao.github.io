@@ -374,6 +374,350 @@ const musicTracks = [
 // Current playing audio
 let currentAudio = null;
 let currentPlayingCard = null;
+const nowPlayingBar = document.getElementById('nowPlaying');
+const navEl = document.querySelector('.nav');
+
+// Playback modes: 'single' (单曲重播), 'shuffle' (随机播放), 'sequential' (顺序播放)
+let playbackMode = 'sequential';
+// 全局按钮点击音效 & 老收音机音效
+const buttonClickSfx = new Audio('button_sound/button-click.mp3');
+buttonClickSfx.volume = 0.35;
+const radioClickSfx = new Audio('button_sound/old-radio-button-click.mp3');
+radioClickSfx.volume = 0.6;
+let nextPlayShouldRadioClick = true; // 首次手动播放前先播 old radio 音效
+let isAutoAdvance = false;
+let isRadioSfxPlaying = false;
+let bongoShown = false; // 仅触发一次的提示
+
+// ===================== Mobile Lock Screen / Media Session =====================
+let mediaSessionHandlersSet = false;
+
+function getCoverUrlByIndex(index) {
+    // 与渲染卡片时一致：第1首保持原样，其余使用 cover{index+1}.jpg
+    if (index >= 1) {
+        return `images/cover${index + 1}.jpg`;
+    }
+    const t = musicTracks[index];
+    return (t && t.cover) ? t.cover : 'images/cover1.jpg';
+}
+
+function updateMediaSession(track, coverUrl) {
+    if (!('mediaSession' in navigator) || !track) return;
+    try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title || '',
+            artist: track.artist || '',
+            album: 'For You',
+            artwork: [
+                { src: coverUrl, sizes: '256x256', type: 'image/jpeg' },
+                { src: coverUrl, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+        if (currentAudio) {
+            navigator.mediaSession.playbackState = currentAudio.paused ? 'paused' : 'playing';
+        }
+        if (!mediaSessionHandlersSet) {
+            navigator.mediaSession.setActionHandler('play', () => {
+                if (currentAudio && currentAudio.paused) currentAudio.play().catch(()=>{});
+            });
+            navigator.mediaSession.setActionHandler('pause', () => {
+                if (currentAudio && !currentAudio.paused) currentAudio.pause();
+            });
+            navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                if (!currentAudio) return;
+                const step = (details && details.seekOffset) || 10;
+                currentAudio.currentTime = Math.min(currentAudio.currentTime + step, currentAudio.duration || currentAudio.currentTime);
+            });
+            navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                if (!currentAudio) return;
+                const step = (details && details.seekOffset) || 10;
+                currentAudio.currentTime = Math.max(currentAudio.currentTime - step, 0);
+            });
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                if (!currentAudio || !details || details.seekTime == null) return;
+                currentAudio.currentTime = Math.max(0, Math.min(details.seekTime, currentAudio.duration || details.seekTime));
+            });
+            mediaSessionHandlersSet = true;
+        }
+    } catch (e) {
+        // ignore
+    }
+}
+
+function setNowPlayingTop() {
+    if (!nowPlayingBar || !navEl) return;
+    const h = navEl.getBoundingClientRect().height;
+    nowPlayingBar.style.top = h + 'px';
+}
+
+window.addEventListener('resize', setNowPlayingTop);
+setTimeout(setNowPlayingTop, 0);
+
+function showNowPlaying(track, coverUrl, isPlaying) {
+    if (!nowPlayingBar) return;
+    const title = track.title || '';
+    const artist = track.artist || '';
+    const cover = coverUrl || '';
+    
+    // 模式图标映射
+    const modeIcons = {
+        'single': '🔁',
+        'shuffle': '🔀',
+        'sequential': '▶️'
+    };
+    
+    nowPlayingBar.innerHTML = `
+        <div class="glass-container glass-container--large">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <div class="glass-content glass-content--inline player">
+                <div class="player__legend">
+                    <p class="player__legend__title">${title} - ${artist}</p>
+                    <p class="player__legend__sub-title"></p>
+                </div>
+                <div class="player__controls">
+                    <button class="np-btn np-mode" title="播放模式: ${playbackMode === 'single' ? '单曲重播' : playbackMode === 'shuffle' ? '随机播放' : '顺序播放'}">${modeIcons[playbackMode]}</button>
+                    <button class="np-btn np-toggle" title="${isPlaying ? 'Pause' : 'Play'}">${isPlaying ? '❚❚' : '▶'}</button>
+                </div>
+            </div>
+        </div>
+    `;
+    // 重置动画状态，确保每次显示都能触发淡入
+    nowPlayingBar.style.animation = 'none';
+    nowPlayingBar.style.display = 'flex';
+    setNowPlayingTop();
+    // 强制重排，然后重新应用动画
+    void nowPlayingBar.offsetWidth;
+    nowPlayingBar.style.animation = '';
+
+    const toggleBtn = nowPlayingBar.querySelector('.np-toggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            // 这个按钮不播放 button-click 音效
+            e.stopPropagation();
+            if (currentAudio) {
+                if (currentAudio.paused) {
+                    currentAudio.play().catch(()=>{});
+                    toggleBtn.textContent = '❚❚';
+                    toggleBtn.title = 'Pause';
+                } else {
+                    currentAudio.pause();
+                    toggleBtn.textContent = '▶';
+                    toggleBtn.title = 'Play';
+                }
+            }
+        });
+    }
+    
+    const modeBtn = nowPlayingBar.querySelector('.np-mode');
+    if (modeBtn) {
+        modeBtn.addEventListener('click', () => {
+            // 循环切换模式: sequential -> shuffle -> single -> sequential
+            if (playbackMode === 'sequential') {
+                playbackMode = 'shuffle';
+            } else if (playbackMode === 'shuffle') {
+                playbackMode = 'single';
+            } else {
+                playbackMode = 'sequential';
+            }
+            modeBtn.textContent = modeIcons[playbackMode];
+            modeBtn.title = `播放模式: ${playbackMode === 'single' ? '单曲重播' : playbackMode === 'shuffle' ? '随机播放' : '顺序播放'}`;
+            
+            // 显示模式提示
+            showModeToast(playbackMode);
+        });
+    }
+}
+
+// 显示播放模式提示（英文，淡出效果）
+function showModeToast(mode) {
+    // 移除已存在的提示
+    const existingToast = document.querySelector('.mode-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const modeTexts = {
+        'single': 'Single Repeat',
+        'shuffle': 'Shuffle',
+        'sequential': 'Sequential'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = 'mode-toast';
+    toast.textContent = modeTexts[mode] || mode;
+    document.body.appendChild(toast);
+    
+    // 触发显示动画
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // 动画结束后移除
+    setTimeout(() => {
+        toast.remove();
+    }, 2100);
+}
+
+function hideNowPlaying() {
+    if (!nowPlayingBar) return;
+    nowPlayingBar.style.display = 'none';
+    nowPlayingBar.style.animation = 'none'; // 重置动画，确保下次显示时重新触发
+}
+
+// 显示顶部 BongoCat 提示（飞到 vibe-cat.gif 位置并触发显示，仅触发一次）
+function showEmojiNotification() {
+    if (bongoShown) return;
+    bongoShown = true;
+    
+    // 找到目标位置（mood-card 中的 vibe-cat.gif）
+    const moodCard = document.querySelector('.mood-card');
+    if (!moodCard) return;
+    
+    const notification = document.createElement('img');
+    notification.className = 'emoji-notification';
+    notification.src = 'bongocat.png';
+    notification.alt = 'Bongo Cat';
+    document.body.appendChild(notification);
+    
+    // 计算目标位置（使用绝对位置，考虑滚动）
+    const getTargetPosition = () => {
+        const rect = moodCard.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        return {
+            x: rect.left + scrollLeft + rect.width / 2,
+            y: rect.top + scrollTop + rect.height / 2
+        };
+    };
+    
+    const targetPos = getTargetPosition();
+    
+    // 设置目标位置作为 CSS 变量（相对于视口）
+    const targetRect = moodCard.getBoundingClientRect();
+    notification.style.setProperty('--target-x', `${targetRect.left + targetRect.width / 2}px`);
+    notification.style.setProperty('--target-y', `${targetRect.top + targetRect.height / 2}px`);
+    
+    // 找到 mood-card 所在的 section
+    const musicSection = document.querySelector('.section[data-section="1"]');
+    const musicSectionIndex = 1;
+    
+    // 检查当前是否在 Music section
+    const currentSection = document.querySelector('.section.active');
+    const isInMusicSection = currentSection && currentSection.dataset.section === '1';
+    
+    // 如果不在 Music section，先切换过去
+    if (!isInMusicSection) {
+        // 找到所有 section 并切换
+        const allSections = document.querySelectorAll('.section');
+        allSections.forEach((s, i) => {
+            if (i === musicSectionIndex) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+        // 更新 dots
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach((dot, i) => {
+            if (i === musicSectionIndex) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+    
+    let scrollStarted = false;
+    let scrollStartTime = null;
+    
+    let scrollAnimationId = null;
+    function checkAndStartScroll(currentTime) {
+        // 在中间位置（60%进度，约2.7秒）开始跟随
+        const elapsed = currentTime - animationStartTime;
+        const progress = elapsed / 4500; // 总动画时长4.5秒
+        
+        if (progress >= 0.6 && !scrollStarted) {
+            scrollStarted = true;
+            scrollStartTime = currentTime;
+            
+            // 在 section 内部平滑滚动到目标位置
+            const section = musicSection;
+            if (!section) return;
+            
+            // 计算目标滚动位置：让 mood-card 位于屏幕中央
+            const targetRect = moodCard.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            // 目标：mood-card 中心在屏幕中央
+            const targetCenterY = window.innerHeight / 2;
+            const cardCenterY = targetRect.top + targetRect.height / 2;
+            const scrollOffset = cardCenterY - targetCenterY;
+            const targetScrollTop = section.scrollTop + scrollOffset;
+            
+            const startScrollTop = section.scrollTop;
+            const scrollDistance = targetScrollTop - startScrollTop;
+            const scrollDuration = 1800; // 剩余1.8秒用于滚动
+            
+            function smoothScroll(scrollTime) {
+                const scrollElapsed = scrollTime - scrollStartTime;
+                const scrollProgress = Math.min(scrollElapsed / scrollDuration, 1);
+                // 使用平滑的缓动函数
+                const easeProgress = scrollProgress < 0.5 
+                    ? 2 * scrollProgress * scrollProgress 
+                    : 1 - Math.pow(-2 * scrollProgress + 2, 3) / 2;
+                
+                // 计算当前应该滚动到的位置
+                const currentScrollTop = startScrollTop + scrollDistance * easeProgress;
+                section.scrollTop = currentScrollTop;
+                
+                // 动态更新目标位置（相对于视口）
+                const newRect = moodCard.getBoundingClientRect();
+                notification.style.setProperty('--target-x', `${newRect.left + newRect.width / 2}px`);
+                notification.style.setProperty('--target-y', `${newRect.top + newRect.height / 2}px`);
+                
+                // 检查动画总进度
+                const totalElapsed = scrollTime - animationStartTime;
+                const totalProgress = totalElapsed / 4500;
+                
+                if (scrollProgress < 1 && totalProgress < 0.95) {
+                    scrollAnimationId = requestAnimationFrame(smoothScroll);
+                }
+            }
+            
+            requestAnimationFrame(smoothScroll);
+        }
+        
+        // 动态更新目标位置（即使还没开始滚动）
+        if (progress < 0.95) {
+            const newRect = moodCard.getBoundingClientRect();
+            notification.style.setProperty('--target-x', `${newRect.left + newRect.width / 2}px`);
+            notification.style.setProperty('--target-y', `${newRect.top + newRect.height / 2}px`);
+            
+            requestAnimationFrame(checkAndStartScroll);
+        }
+    }
+    
+    // 启动飞行动画
+    const animationStartTime = performance.now();
+    requestAnimationFrame(() => {
+        notification.classList.add('drop');
+        requestAnimationFrame(checkAndStartScroll);
+    });
+    
+    // 动画结束后触发 vibe-cat 显示并移除 Bongo Cat
+    notification.addEventListener('animationend', () => {
+        // 触发 vibe-cat.gif 的弹出动画（如果还没显示）
+        const vibeIcon = document.querySelector('.mood-icon.vibe');
+        if (vibeIcon && !vibeIcon.classList.contains('pop')) {
+            vibeIcon.classList.add('pop');
+        }
+        // 移除 Bongo Cat
+        if (notification && notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, { once: true });
+}
 
 function loadMusic() {
     const grid = document.getElementById('musicGrid');
@@ -412,6 +756,7 @@ function loadMusic() {
                 <audio src="${audioPath}" preload="metadata"></audio>
                 <div class="progress-bar">
                     <div class="progress-fill"></div>
+                    <div class="progress-ball"></div>
                 </div>
                 <div class="controls">
                     <button class="control-btn play-pause">
@@ -442,6 +787,20 @@ function initAudioPlayer(card, track) {
     const playPauseBtn = card.querySelector('.play-pause');
     const playIcon = card.querySelector('.play-icon');
     const pauseIcon = card.querySelector('.pause-icon');
+    // 使用符号替代SVG
+    if (playIcon) playIcon.style.display = 'none';
+    if (pauseIcon) pauseIcon.style.display = 'none';
+    let ppSymbol = playPauseBtn.querySelector('.pp-symbol');
+    if (!ppSymbol) {
+        ppSymbol = document.createElement('span');
+        ppSymbol.className = 'pp-symbol';
+        ppSymbol.textContent = '▶';
+        playPauseBtn.appendChild(ppSymbol);
+    }
+    // 指定特殊按钮使用 old-radio 音效（示例：第1张卡片）
+    if (Number(card.dataset.index) === 0) {
+        ppSymbol.dataset.radioTrigger = '1';
+    }
     const progressBar = card.querySelector('.progress-bar');
     const progressFill = card.querySelector('.progress-fill');
     const timeDisplay = card.querySelector('.time-display');
@@ -462,58 +821,268 @@ function initAudioPlayer(card, track) {
     
     // Update progress
     audio.addEventListener('timeupdate', () => {
+        if (!audio.duration) return;
         const progress = (audio.currentTime / audio.duration) * 100;
         progressFill.style.width = `${progress}%`;
         timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+        
+        // 更新粉色小球位置
+        const progressBall = card.querySelector('.progress-ball');
+        if (progressBall) {
+            progressBall.style.left = `${progress}%`;
+        }
+        // 持续同步 Media Session 播放状态
+        if ('mediaSession' in navigator) {
+            try { navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing'; } catch(e) {}
+        }
     });
     
     // Play/Pause toggle
     function togglePlay() {
-        if (currentAudio && currentAudio !== audio) {
+        const isSwitchingTrack = currentAudio && currentAudio !== audio;
+        
+        if (isSwitchingTrack) {
             currentAudio.pause();
-            currentPlayingCard.querySelector('.play-icon').style.display = 'block';
-            currentPlayingCard.querySelector('.pause-icon').style.display = 'none';
+            const prevBtn = currentPlayingCard.querySelector('.play-pause .pp-symbol');
+            if (prevBtn) prevBtn.textContent = '▶';
             currentPlayingCard.classList.remove('playing');
         }
         
         if (audio.paused) {
-            audio.play();
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'block';
-            card.classList.add('playing');
-            currentAudio = audio;
-            currentPlayingCard = card;
+            // 手动切换歌曲时也需要播放 old radio 音效
+            const needRadio = (!!ppSymbol.dataset.radioTrigger || nextPlayShouldRadioClick || (isSwitchingTrack && !isAutoAdvance)) && !isAutoAdvance;
+
+            const startSong = () => {
+                audio.play().catch(()=>{});
+                if (ppSymbol) ppSymbol.textContent = '❚❚';
+                card.classList.add('playing');
+                currentAudio = audio;
+                currentPlayingCard = card;
+                const idx = Number(card.dataset.index);
+                const trackData = musicTracks[idx];
+                const coverUrl = getCoverUrlByIndex(idx);
+                showNowPlaying(trackData, coverUrl, true);
+                updateMediaSession(trackData, coverUrl);
+                nextPlayShouldRadioClick = false;
+                
+                // 替换 mood-icon SVG 为 vibe-cat.gif
+                const moodIcon = document.querySelector('.mood-icon');
+                if (moodIcon && !moodIcon.dataset.originalType) {
+                    moodIcon.dataset.originalType = 'svg';
+                    const parent = moodIcon.parentElement;
+                    const img = document.createElement('img');
+                    img.src = 'vibe-cat.gif';
+                    img.className = 'mood-icon vibe';
+                    img.alt = 'Vibe Cat';
+                    // 尺寸交由 CSS 控制，避免超出 mood-card
+                    parent.replaceChild(img, moodIcon);
+                    
+                    // 显示顶部 BongoCat 提示（仅一次）
+                    showEmojiNotification();
+                }
+            };
+
+            if (needRadio && !isRadioSfxPlaying) {
+                isRadioSfxPlaying = true;
+                try {
+                    radioClickSfx.currentTime = 0;
+                    radioClickSfx.onended = () => { isRadioSfxPlaying = false; startSong(); };
+                    radioClickSfx.play().catch(()=>{ isRadioSfxPlaying = false; startSong(); });
+                } catch(e) { isRadioSfxPlaying = false; startSong(); }
+            } else {
+                startSong();
+            }
         } else {
             audio.pause();
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
+            if (ppSymbol) ppSymbol.textContent = '▶';
             card.classList.remove('playing');
+            // 如果没有任何播放则隐藏
+            setTimeout(() => {
+                if (!currentAudio || currentAudio.paused) {
+                    hideNowPlaying();
+                    // 恢复 mood-icon 为 SVG
+                    const moodIcon = document.querySelector('.mood-icon');
+                    if (moodIcon && moodIcon.tagName === 'IMG' && moodIcon.src.includes('vibe-cat.gif')) {
+                        const parent = moodIcon.parentElement;
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg.setAttribute('class', 'mood-icon');
+                        svg.setAttribute('viewBox', '0 0 24 24');
+                        svg.setAttribute('fill', 'none');
+                        svg.setAttribute('stroke', 'currentColor');
+                        svg.setAttribute('stroke-width', '2');
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', 'M9 18V5l12-2v13');
+                        svg.appendChild(path);
+                        const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle1.setAttribute('cx', '6');
+                        circle1.setAttribute('cy', '18');
+                        circle1.setAttribute('r', '3');
+                        svg.appendChild(circle1);
+                        const circle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle2.setAttribute('cx', '18');
+                        circle2.setAttribute('cy', '16');
+                        circle2.setAttribute('r', '3');
+                        svg.appendChild(circle2);
+                        parent.replaceChild(svg, moodIcon);
+                    }
+                }
+            }, 0);
+            // 更新播放状态
+            updateMediaSession(musicTracks[Number(card.dataset.index)], getCoverUrlByIndex(Number(card.dataset.index)));
+            nextPlayShouldRadioClick = true;
         }
     }
     
-    playPauseBtn.addEventListener('click', togglePlay);
-    playBtn.addEventListener('click', togglePlay);
-    
-    // Progress bar click
-    progressBar.addEventListener('click', (e) => {
-        const rect = progressBar.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
-        audio.currentTime = percent * audio.duration;
+    playPauseBtn.addEventListener('click', (e) => {
+        // 播放按钮不播放 button-click 音效
+        togglePlay();
+    });
+    playBtn.addEventListener('click', (e) => {
+        // 封面上的播放按钮也不播放 button-click 音效
+        togglePlay();
     });
     
-    // Volume toggle
+    // Progress bar drag functionality
+    let isDragging = false;
+    
+    function updateProgress(e) {
+        if (!audio.duration) return;
+        const rect = progressBar.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        audio.currentTime = percent * audio.duration;
+        
+        // 更新进度条和小球位置
+        const progress = percent * 100;
+        progressFill.style.width = `${progress}%`;
+        const progressBall = card.querySelector('.progress-ball');
+        if (progressBall) {
+            progressBall.style.left = `${progress}%`;
+        }
+    }
+    
+    progressBar.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        try { buttonClickSfx.currentTime = 0; buttonClickSfx.play().catch(()=>{}); } catch(e2) {}
+        updateProgress(e);
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            updateProgress(e);
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+    
+    // 触摸支持（移动端）
+    progressBar.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateProgress(e.touches[0]);
+        e.preventDefault();
+    });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            updateProgress(e.touches[0]);
+        }
+    });
+    
+    document.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+    
+    // Volume toggle with icon swap
+    const volumeIconOn = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
+    const volumeIconOff = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.59-4L12 9.59 9.41 7 8 8.41 10.59 11 8 13.59 9.41 15 12 12.41 14.59 15 16 13.59 13.41 11 16 8.41 14.59 7z"/></svg>';
+    function updateVolumeIcon() {
+        volumeBtn.innerHTML = audio.muted ? volumeIconOff : volumeIconOn;
+        volumeBtn.style.opacity = audio.muted ? '0.6' : '1';
+    }
+    updateVolumeIcon();
     volumeBtn.addEventListener('click', () => {
         audio.muted = !audio.muted;
-        volumeBtn.style.opacity = audio.muted ? '0.5' : '1';
+        updateVolumeIcon();
     });
     
-    // Auto pause when ended
+    // Auto play next/loop based on playback mode
     audio.addEventListener('ended', () => {
-        playIcon.style.display = 'block';
-        pauseIcon.style.display = 'none';
-        card.classList.remove('playing');
-        progressFill.style.width = '0%';
-        audio.currentTime = 0;
+        const currentIndex = parseInt(card.dataset.index);
+        const currentGenre = card.dataset.genre;
+        
+        // 根据播放模式决定下一首
+        let nextIndex = -1;
+        
+        if (playbackMode === 'single') {
+            // 单曲重播：直接重播当前歌曲
+            nextIndex = currentIndex;
+        } else if (playbackMode === 'shuffle') {
+            // 随机播放：从当前筛选的mood/genre中随机选择
+            const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+            const availableTracks = Array.from(document.querySelectorAll('.music-card'))
+                .filter(c => !c.classList.contains('hidden'))
+                .map(c => parseInt(c.dataset.index))
+                .filter(idx => idx !== currentIndex); // 排除当前歌曲
+            
+            if (availableTracks.length > 0) {
+                nextIndex = availableTracks[Math.floor(Math.random() * availableTracks.length)];
+            }
+        } else {
+            // 顺序播放：按列表顺序找下一首
+            const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+            const visibleCards = Array.from(document.querySelectorAll('.music-card'))
+                .filter(c => !c.classList.contains('hidden'))
+                .map(c => ({ card: c, index: parseInt(c.dataset.index) }))
+                .sort((a, b) => a.index - b.index);
+            
+            const currentPos = visibleCards.findIndex(item => item.index === currentIndex);
+            if (currentPos >= 0 && currentPos < visibleCards.length - 1) {
+                nextIndex = visibleCards[currentPos + 1].index;
+            } else if (visibleCards.length > 0) {
+                // 如果已是最后一首，循环到第一首
+                nextIndex = visibleCards[0].index;
+            }
+        }
+        
+        // 播放下一首或重播当前
+        if (nextIndex >= 0 && nextIndex < musicTracks.length) {
+            const nextCard = document.querySelector(`.music-card[data-index="${nextIndex}"]`);
+            if (nextCard) {
+                // 停止当前播放
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                card.classList.remove('playing');
+                progressFill.style.width = '0%';
+                
+                // 触发下一首播放
+                setTimeout(() => {
+                    const nextPlayBtn = nextCard.querySelector('.play-pause');
+                    if (nextPlayBtn) {
+                        isAutoAdvance = true;
+                        nextPlayBtn.click();
+                        setTimeout(() => { isAutoAdvance = false; }, 10);
+                    }
+                }, 300);
+            } else {
+                // 如果找不到下一首，隐藏Now Playing
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                card.classList.remove('playing');
+                progressFill.style.width = '0%';
+                audio.currentTime = 0;
+                hideNowPlaying();
+            }
+        } else {
+            // 没有下一首，隐藏Now Playing
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+            card.classList.remove('playing');
+            progressFill.style.width = '0%';
+            audio.currentTime = 0;
+            hideNowPlaying();
+        }
     });
 }
 
@@ -539,6 +1108,18 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 
 loadMusic();
 
+// 全局：为其它按钮添加 click 音（避免与播放/进度条重复触发）
+document.addEventListener('click', (ev) => {
+    const target = ev.target;
+    if (!(target instanceof Element)) return;
+    const btn = target.closest('button');
+    if (!btn) return;
+    // 跳过播放按钮、音量按钮、进度条内操作、Now Playing 条中的 toggle 按钮，避免重复
+    if (btn.classList.contains('play-pause') || btn.classList.contains('volume-btn') || btn.classList.contains('np-toggle')) return;
+    if (btn.closest('.progress-bar')) return;
+    try { buttonClickSfx.currentTime = 0; buttonClickSfx.play().catch(()=>{}); } catch(e) {}
+}, { passive: true });
+
 // ==========================================
 // PHOTOS DATA
 // ==========================================
@@ -562,17 +1143,33 @@ function loadPhotos() {
         const card = document.createElement('div');
         card.className = 'photo-card';
         card.dataset.photoIndex = index;
-        
-        card.innerHTML = `
-            <img src="${photo.image}" alt="${photo.caption}" class="photo-img">
-            <div class="photo-overlay">
-                <p class="photo-caption">${photo.caption}</p>
-            </div>
-        `;
-        
-        // 点击照片打开灯箱
+
+        // Polaroid wrapper
+        const polaroid = document.createElement('div');
+        polaroid.className = 'polaroid';
+        // 随机轻微旋转（-3° ~ 3°）
+        const angle = (Math.random() * 6 - 3).toFixed(2);
+        polaroid.style.transform = `rotate(${angle}deg)`;
+
+        const tape = document.createElement('div');
+        tape.className = 'tape';
+        const img = document.createElement('img');
+        img.src = photo.image;
+        img.alt = photo.caption;
+
+        const caption = document.createElement('div');
+        caption.className = 'caption';
+        caption.textContent = photo.caption;
+
+        polaroid.appendChild(tape);
+        polaroid.appendChild(img);
+        polaroid.appendChild(caption);
+
+        card.appendChild(polaroid);
+
+        // 点击打开灯箱
         card.addEventListener('click', () => openLightbox(index));
-        
+
         grid.appendChild(card);
     });
 }
