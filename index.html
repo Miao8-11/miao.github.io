@@ -8,9 +8,14 @@
     <title>Whatcha doin here?</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <!-- Particle Background -->
-    <canvas id="particles"></canvas>
+<body class="entrance-active">
+    <!-- Entrance Animation Overlay -->
+    <div class="entrance-overlay" id="entranceOverlay">
+        <div class="entrance-content">
+            <div class="entrance-title">Whatcha doin here?</div>
+            <div class="entrance-subtitle">Welcome</div>
+        </div>
+    </div>
     
     <!-- Navigation -->
     <nav class="nav">
@@ -177,7 +182,6 @@
         <div class="lightbox-content">
             <button class="lightbox-close" id="lightboxClose">&times;</button>
             <img src="" alt="" class="lightbox-img" id="lightboxImg">
-            <div class="lightbox-caption" id="lightboxCaption"></div>
         </div>
     </div>
     

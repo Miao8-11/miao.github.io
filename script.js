@@ -1,8 +1,35 @@
 // ==========================================
+// ENTRANCE ANIMATION - 进入动画控制
+// ==========================================
+const entranceOverlay = document.getElementById('entranceOverlay');
+const body = document.body;
+
+// 页面加载时立即添加类名以隐藏网站内容（防止闪现）
+// body标签在HTML中已经添加了entrance-active类
+// 这里确保覆盖层存在
+if (!entranceOverlay) {
+    // 如果覆盖层不存在，确保界面元素保持隐藏
+    body.classList.add('entrance-active');
+}
+
+// 页面加载完成后，延迟移除进入动画覆盖层并触发分阶段淡入
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        if (entranceOverlay) {
+            entranceOverlay.style.display = 'none';
+            entranceOverlay.style.visibility = 'hidden';
+            entranceOverlay.style.opacity = '0';
+            body.classList.remove('entrance-active');
+            body.classList.add('page-ready'); // 添加类名以触发分阶段淡入动画
+            body.classList.add('background-visible'); // 确保背景图显示
+        }
+    }, 2000); // 与动画时长一致（2秒）
+});
+
+// ==========================================
 // THEME SWITCHER - 2个主题切换
 // ==========================================
 const themeToggle = document.getElementById('themeToggle');
-const body = document.body;
 
 // 主题列表：Vibrant (默认) 和 Pastel
 const themes = ['vibrant', 'pastel'];
@@ -32,73 +59,6 @@ themeToggle.addEventListener('click', (e) => {
         localStorage.setItem('theme', 'vibrant');
     }
     
-    // 更新粒子颜色
-    updateParticleColors();
-});
-
-// ==========================================
-// PARTICLE BACKGROUND
-// ==========================================
-const canvas = document.getElementById('particles');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-const particles = [];
-const particleCount = 80;
-
-class Particle {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.size = Math.random() * 2 + 1;
-    }
-    
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-    }
-    
-    draw() {
-        // 根据主题切换粒子颜色
-        const isPastel = body.classList.contains('theme-pastel');
-        ctx.fillStyle = isPastel 
-            ? 'rgba(158, 197, 226, 0.5)'  // Pastel 天蓝色
-            : 'rgba(242, 183, 5, 0.5)';   // Vibrant 金黄色
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-
-function updateParticleColors() {
-    // 粒子颜色会在下一帧自动更新
-}
-
-for (let i = 0; i < particleCount; i++) {
-    particles.push(new Particle());
-}
-
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-        p.update();
-        p.draw();
-    });
-    requestAnimationFrame(animate);
-}
-
-animate();
-
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 });
 
 // ==========================================
@@ -123,9 +83,16 @@ class FullPageScroll {
             this.bottomNavBtn.addEventListener('click', () => this.next());
         }
         
-        // Monitor scroll to show/hide bottom button
+        // Monitor scroll to show/hide bottom button - 节流处理
+        let scrollTimeout = null;
         this.sections.forEach(section => {
-            section.addEventListener('scroll', () => this.checkBottomNav());
+            section.addEventListener('scroll', () => {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(() => {
+                    this.checkBottomNav();
+                    scrollTimeout = null;
+                }, 100); // 每100ms最多执行一次
+            }, { passive: true });
         });
         
         // Wheel event
@@ -376,6 +343,8 @@ let currentAudio = null;
 let currentPlayingCard = null;
 const nowPlayingBar = document.getElementById('nowPlaying');
 const navEl = document.querySelector('.nav');
+// 全局音频对象数组，用于防止多首歌同时播放
+const allAudioObjects = [];
 
 // Playback modes: 'single' (单曲重播), 'shuffle' (随机播放), 'sequential' (顺序播放)
 let playbackMode = 'sequential';
@@ -388,9 +357,70 @@ let nextPlayShouldRadioClick = true; // 首次手动播放前先播 old radio �
 let isAutoAdvance = false;
 let isRadioSfxPlaying = false;
 let bongoShown = false; // 仅触发一次的提示
+let pendingRadioAudio = null; // 正在等待radio音效播放完成的音频对象
 
 // ===================== Mobile Lock Screen / Media Session =====================
 let mediaSessionHandlersSet = false;
+
+// ===================== 文字滚动功能 =====================
+function setupScrollingText(scrollElement, wrapperElement) {
+    if (!scrollElement || !wrapperElement) return;
+    
+    // 等待DOM渲染完成
+    setTimeout(() => {
+        const wrapperWidth = wrapperElement.offsetWidth;
+        const scrollWidth = scrollElement.scrollWidth;
+        
+        if (scrollWidth > wrapperWidth) {
+            // 文字溢出，启用滚动
+            const overflow = scrollWidth - wrapperWidth;
+            const duration = scrollElement.classList.contains('player__legend__title-scroll') ? 15 : 12; // 播放器15秒，歌曲列表12秒
+            const pauseTime = 2; // 开始和结束的暂停时间（秒）
+            
+            // 计算滚动距离
+            const scrollDistance = overflow + 20; // 多滚动一点确保完全显示
+            
+            // 设置CSS变量来动态控制滚动距离
+            scrollElement.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
+            scrollElement.style.setProperty('--scroll-duration', `${duration}s`);
+            
+            // 确定动画名称
+            let animationName = 'scrollText';
+            if (scrollElement.classList.contains('track-title-scroll')) {
+                animationName = 'scrollTextTrack';
+            } else if (scrollElement.classList.contains('track-artist-scroll')) {
+                animationName = 'scrollTextArtist';
+            }
+            
+            // 更新动画关键帧（使用唯一ID避免冲突）
+            const styleId = `dynamic-scroll-${animationName}`;
+            let style = document.getElementById(styleId);
+            if (!style) {
+                style = document.createElement('style');
+                style.id = styleId;
+                document.head.appendChild(style);
+            }
+            
+            const pausePercent = (pauseTime / duration * 100).toFixed(2);
+            const scrollEndPercent = ((duration - pauseTime) / duration * 100).toFixed(2);
+            
+            style.textContent = `
+                @keyframes ${animationName} {
+                    0% { transform: translateX(0); }
+                    ${pausePercent}% { transform: translateX(0); }
+                    ${scrollEndPercent}% { transform: translateX(var(--scroll-distance)); }
+                    100% { transform: translateX(var(--scroll-distance)); }
+                }
+            `;
+            
+            // 设置动画名称
+            scrollElement.style.animationName = animationName;
+            scrollElement.classList.add('scrolling');
+        } else {
+            scrollElement.classList.remove('scrolling');
+        }
+    }, 100);
+}
 
 function getCoverUrlByIndex(index) {
     // 与渲染卡片时一致：第1首保持原样，其余使用 cover{index+1}.jpg
@@ -473,7 +503,11 @@ function showNowPlaying(track, coverUrl, isPlaying) {
             <div class="glass-specular"></div>
             <div class="glass-content glass-content--inline player">
                 <div class="player__legend">
-                    <p class="player__legend__title">${title} - ${artist}</p>
+                    <div class="player__legend__title-scroll-wrapper">
+                        <p class="player__legend__title">
+                            <span class="player__legend__title-scroll">${title} - ${artist}</span>
+                        </p>
+                    </div>
                     <p class="player__legend__sub-title"></p>
                 </div>
                 <div class="player__controls">
@@ -483,6 +517,8 @@ function showNowPlaying(track, coverUrl, isPlaying) {
             </div>
         </div>
     `;
+    // 设置滚动动画
+    setupScrollingText(nowPlayingBar.querySelector('.player__legend__title-scroll'), nowPlayingBar.querySelector('.player__legend__title-scroll-wrapper'));
     // 重置动画状态，确保每次显示都能触发淡入
     nowPlayingBar.style.animation = 'none';
     nowPlayingBar.style.display = 'flex';
@@ -570,6 +606,26 @@ function hideNowPlaying() {
 function showEmojiNotification() {
     if (bongoShown) return;
     bongoShown = true;
+    
+    // 创建全屏遮罩层，禁用所有用户交互
+    const interactionBlocker = document.createElement('div');
+    interactionBlocker.id = 'interactionBlocker';
+    interactionBlocker.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        pointer-events: auto;
+        background: transparent;
+        cursor: wait;
+    `;
+    document.body.appendChild(interactionBlocker);
+    
+    // 禁用 body 的交互
+    document.body.style.pointerEvents = 'none';
+    document.body.style.userSelect = 'none';
     
     // 找到目标位置（mood-card 中的 vibe-cat.gif）
     const moodCard = document.querySelector('.mood-card');
@@ -711,7 +767,29 @@ function showEmojiNotification() {
         const vibeIcon = document.querySelector('.mood-icon.vibe');
         if (vibeIcon && !vibeIcon.classList.contains('pop')) {
             vibeIcon.classList.add('pop');
+            
+            // 等待 vibe-cat 弹出动画完成后再恢复交互
+            vibeIcon.addEventListener('animationend', () => {
+                // 恢复用户交互
+                document.body.style.pointerEvents = '';
+                document.body.style.userSelect = '';
+                
+                // 移除遮罩层
+                const blocker = document.getElementById('interactionBlocker');
+                if (blocker && blocker.parentNode) {
+                    blocker.parentNode.removeChild(blocker);
+                }
+            }, { once: true });
+        } else {
+            // 如果 vibe-cat 已经弹出，立即恢复交互
+            document.body.style.pointerEvents = '';
+            document.body.style.userSelect = '';
+            const blocker = document.getElementById('interactionBlocker');
+            if (blocker && blocker.parentNode) {
+                blocker.parentNode.removeChild(blocker);
+            }
         }
+        
         // 移除 Bongo Cat
         if (notification && notification.parentNode) {
             notification.parentNode.removeChild(notification);
@@ -748,8 +826,16 @@ function loadMusic() {
                 </div>
             </div>
             <div class="music-info-box">
-                <h4 class="track-title">${track.title}</h4>
-                <p class="track-artist">${track.artist}</p>
+                <div class="track-title-scroll-wrapper">
+                    <h4 class="track-title">
+                        <span class="track-title-scroll">${track.title}</span>
+                    </h4>
+                </div>
+                <div class="track-artist-scroll-wrapper">
+                    <p class="track-artist">
+                        <span class="track-artist-scroll">${track.artist}</span>
+                    </p>
+                </div>
                 <p class="track-genre">${track.genre.toUpperCase()}</p>
             </div>
             <div class="audio-player">
@@ -784,6 +870,10 @@ function loadMusic() {
 
 function initAudioPlayer(card, track) {
     const audio = card.querySelector('audio');
+    // 将音频对象添加到全局数组
+    if (audio && !allAudioObjects.includes(audio)) {
+        allAudioObjects.push(audio);
+    }
     const playPauseBtn = card.querySelector('.play-pause');
     const playIcon = card.querySelector('.play-icon');
     const pauseIcon = card.querySelector('.pause-icon');
@@ -841,11 +931,54 @@ function initAudioPlayer(card, track) {
     function togglePlay() {
         const isSwitchingTrack = currentAudio && currentAudio !== audio;
         
+        // 如果正在切换歌曲，立即停止并取消radio音效的回调
+        if (isSwitchingTrack || (pendingRadioAudio && pendingRadioAudio !== audio)) {
+            // 停止radio音效
+            if (isRadioSfxPlaying) {
+                radioClickSfx.pause();
+                radioClickSfx.currentTime = 0;
+                radioClickSfx.onended = null; // 清除回调
+                isRadioSfxPlaying = false;
+            }
+            // 停止等待radio音效的音频
+            if (pendingRadioAudio && pendingRadioAudio !== audio) {
+                pendingRadioAudio.pause();
+                pendingRadioAudio.currentTime = 0;
+                const pendingCard = Array.from(document.querySelectorAll('.music-card')).find(c => c.querySelector('audio') === pendingRadioAudio);
+                if (pendingCard) {
+                    pendingCard.classList.remove('playing');
+                    const pendingBtn = pendingCard.querySelector('.play-pause .pp-symbol');
+                    if (pendingBtn) pendingBtn.textContent = '▶';
+                }
+                pendingRadioAudio = null;
+            }
+        }
+        
+        // 停止所有正在播放的音频，防止多首歌同时播放
+        allAudioObjects.forEach(aud => {
+            if (aud && !aud.paused && aud !== audio) {
+                aud.pause();
+                aud.currentTime = 0; // 重置进度
+            }
+        });
+        
+        // 移除所有卡片的playing状态
+        document.querySelectorAll('.music-card.playing').forEach(c => {
+            if (c !== card) {
+                c.classList.remove('playing');
+                const btn = c.querySelector('.play-pause .pp-symbol');
+                if (btn) btn.textContent = '▶';
+            }
+        });
+        
         if (isSwitchingTrack) {
-            currentAudio.pause();
-            const prevBtn = currentPlayingCard.querySelector('.play-pause .pp-symbol');
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            const prevBtn = currentPlayingCard?.querySelector('.play-pause .pp-symbol');
             if (prevBtn) prevBtn.textContent = '▶';
-            currentPlayingCard.classList.remove('playing');
+            if (currentPlayingCard) currentPlayingCard.classList.remove('playing');
         }
         
         if (audio.paused) {
@@ -853,6 +986,12 @@ function initAudioPlayer(card, track) {
             const needRadio = (!!ppSymbol.dataset.radioTrigger || nextPlayShouldRadioClick || (isSwitchingTrack && !isAutoAdvance)) && !isAutoAdvance;
 
             const startSong = () => {
+                // 再次检查是否应该播放（防止在radio音效期间被其他歌曲覆盖）
+                // 如果pendingRadioAudio已被设置为其他音频，说明用户已经切换了歌曲，不播放
+                if (pendingRadioAudio !== null && pendingRadioAudio !== audio) {
+                    return; // 如果已经被其他歌曲替换，不播放
+                }
+                pendingRadioAudio = null; // 清除等待状态
                 audio.play().catch(()=>{});
                 if (ppSymbol) ppSymbol.textContent = '❚❚';
                 card.classList.add('playing');
@@ -884,11 +1023,34 @@ function initAudioPlayer(card, track) {
 
             if (needRadio && !isRadioSfxPlaying) {
                 isRadioSfxPlaying = true;
+                pendingRadioAudio = audio; // 标记这个音频正在等待radio音效
                 try {
                     radioClickSfx.currentTime = 0;
-                    radioClickSfx.onended = () => { isRadioSfxPlaying = false; startSong(); };
-                    radioClickSfx.play().catch(()=>{ isRadioSfxPlaying = false; startSong(); });
-                } catch(e) { isRadioSfxPlaying = false; startSong(); }
+                    radioClickSfx.onended = () => { 
+                        isRadioSfxPlaying = false;
+                        // 检查是否仍然是等待的音频（防止在radio音效期间被替换）
+                        if (pendingRadioAudio === audio) {
+                            startSong();
+                        } else {
+                            pendingRadioAudio = null;
+                        }
+                    };
+                    radioClickSfx.play().catch(()=>{ 
+                        isRadioSfxPlaying = false;
+                        if (pendingRadioAudio === audio) {
+                            startSong();
+                        } else {
+                            pendingRadioAudio = null;
+                        }
+                    });
+                } catch(e) { 
+                    isRadioSfxPlaying = false;
+                    if (pendingRadioAudio === audio) {
+                        startSong();
+                    } else {
+                        pendingRadioAudio = null;
+                    }
+                }
             } else {
                 startSong();
             }
@@ -967,14 +1129,24 @@ function initAudioPlayer(card, track) {
         e.preventDefault();
     });
     
+    // 节流进度条拖动
+    let progressMoveTimeout = null;
     document.addEventListener('mousemove', (e) => {
         if (isDragging) {
-            updateProgress(e);
+            if (progressMoveTimeout) return;
+            progressMoveTimeout = requestAnimationFrame(() => {
+                updateProgress(e);
+                progressMoveTimeout = null;
+            });
         }
-    });
+    }, { passive: true });
     
     document.addEventListener('mouseup', () => {
         isDragging = false;
+        if (progressMoveTimeout) {
+            cancelAnimationFrame(progressMoveTimeout);
+            progressMoveTimeout = null;
+        }
     });
     
     // 触摸支持（移动端）
@@ -984,14 +1156,24 @@ function initAudioPlayer(card, track) {
         e.preventDefault();
     });
     
+    // 节流进度条拖动（触摸）
+    let progressTouchTimeout = null;
     document.addEventListener('touchmove', (e) => {
         if (isDragging) {
-            updateProgress(e.touches[0]);
+            if (progressTouchTimeout) return;
+            progressTouchTimeout = requestAnimationFrame(() => {
+                updateProgress(e.touches[0]);
+                progressTouchTimeout = null;
+            });
         }
-    });
+    }, { passive: true });
     
     document.addEventListener('touchend', () => {
         isDragging = false;
+        if (progressTouchTimeout) {
+            cancelAnimationFrame(progressTouchTimeout);
+            progressTouchTimeout = null;
+        }
     });
     
     // Volume toggle with icon swap
@@ -1067,11 +1249,11 @@ function initAudioPlayer(card, track) {
                 }, 300);
             } else {
                 // 如果找不到下一首，隐藏Now Playing
-                playIcon.style.display = 'block';
-                pauseIcon.style.display = 'none';
-                card.classList.remove('playing');
-                progressFill.style.width = '0%';
-                audio.currentTime = 0;
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+        card.classList.remove('playing');
+        progressFill.style.width = '0%';
+        audio.currentTime = 0;
                 hideNowPlaying();
             }
         } else {
@@ -1084,6 +1266,19 @@ function initAudioPlayer(card, track) {
             hideNowPlaying();
         }
     });
+    
+    // 设置标题和艺术家文字的滚动效果
+    const titleScroll = card.querySelector('.track-title-scroll');
+    const titleWrapper = card.querySelector('.track-title-scroll-wrapper');
+    const artistScroll = card.querySelector('.track-artist-scroll');
+    const artistWrapper = card.querySelector('.track-artist-scroll-wrapper');
+    
+    if (titleScroll && titleWrapper) {
+        setupScrollingText(titleScroll, titleWrapper);
+    }
+    if (artistScroll && artistWrapper) {
+        setupScrollingText(artistScroll, artistWrapper);
+    }
 }
 
 // Music filters
@@ -1143,7 +1338,7 @@ function loadPhotos() {
         const card = document.createElement('div');
         card.className = 'photo-card';
         card.dataset.photoIndex = index;
-
+        
         // Polaroid wrapper
         const polaroid = document.createElement('div');
         polaroid.className = 'polaroid';
@@ -1155,21 +1350,16 @@ function loadPhotos() {
         tape.className = 'tape';
         const img = document.createElement('img');
         img.src = photo.image;
-        img.alt = photo.caption;
-
-        const caption = document.createElement('div');
-        caption.className = 'caption';
-        caption.textContent = photo.caption;
+        img.alt = '';
 
         polaroid.appendChild(tape);
         polaroid.appendChild(img);
-        polaroid.appendChild(caption);
 
         card.appendChild(polaroid);
 
         // 点击打开灯箱
         card.addEventListener('click', () => openLightbox(index));
-
+        
         grid.appendChild(card);
     });
 }
@@ -1177,14 +1367,12 @@ function loadPhotos() {
 // 灯箱功能
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
-const lightboxCaption = document.getElementById('lightboxCaption');
 const lightboxClose = document.getElementById('lightboxClose');
 
 function openLightbox(index) {
     const photo = photos[index];
     lightboxImg.src = photo.image;
-    lightboxImg.alt = photo.caption;
-    lightboxCaption.textContent = ''; // 不显示图片名字
+    lightboxImg.alt = '';
     
     // 显示灯箱
     lightbox.style.display = 'flex';
@@ -1313,17 +1501,15 @@ function updatePetHandPosition(x, y) {
     petHand.style.left = x + 'px';
     petHand.style.top = y + 'px';
     petHand.style.transform = 'translate(-50%, -50%)';
-    console.log('Pet hand position - x:', x, 'y:', y);
-    console.log('Window scroll - x:', window.scrollX, 'y:', window.scrollY);
 }
 
 // 音频淡入淡出函数
 function fadeInAudio() {
     if (!purringAudio) return;
     
-    // 清除之前的淡出
+    // 清除之前的淡入/淡出
     if (fadeInterval) {
-        clearInterval(fadeInterval);
+        cancelAnimationFrame(fadeInterval);
         fadeInterval = null;
     }
     
@@ -1334,78 +1520,66 @@ function fadeInAudio() {
     
     // 从 0 开始
     purringAudio.volume = 0;
-    purringAudio.play().catch(e => console.log('Audio play failed:', e));
+    purringAudio.play().catch(() => {});
     
-    // 淡入到 1.0，持续 500ms
+    // 淡入到 1.0，持续 500ms - 使用requestAnimationFrame优化性能
     const fadeInDuration = 500;
-    const steps = 20;
-    const stepTime = fadeInDuration / steps;
-    const volumeStep = 1.0 / steps;
-    let currentStep = 0;
+    const startTime = performance.now();
     
-    fadeInterval = setInterval(() => {
-        currentStep++;
-        purringAudio.volume = Math.min(currentStep * volumeStep, 1.0);
+    function fadeInStep(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / fadeInDuration, 1);
+        purringAudio.volume = progress;
         
-        if (currentStep >= steps) {
-            clearInterval(fadeInterval);
+        if (progress < 1) {
+            fadeInterval = requestAnimationFrame(fadeInStep);
+        } else {
             fadeInterval = null;
         }
-    }, stepTime);
+    }
     
-    console.log('Purring audio fade in started');
+    fadeInterval = requestAnimationFrame(fadeInStep);
 }
 
 function fadeOutAudio() {
     if (!purringAudio) return;
     
-    // 清除之前的淡入
+    // 清除之前的淡入/淡出
     if (fadeInterval) {
-        clearInterval(fadeInterval);
+        cancelAnimationFrame(fadeInterval);
         fadeInterval = null;
     }
     
-    // 淡出到 0，持续 500ms
+    // 淡出到 0，持续 500ms - 使用requestAnimationFrame优化性能
     const fadeOutDuration = 500;
-    const steps = 20;
-    const stepTime = fadeOutDuration / steps;
     const startVolume = purringAudio.volume;
-    const volumeStep = startVolume / steps;
-    let currentStep = 0;
+    const startTime = performance.now();
     
-    fadeInterval = setInterval(() => {
-        currentStep++;
-        purringAudio.volume = Math.max(startVolume - (currentStep * volumeStep), 0);
+    function fadeOutStep(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / fadeOutDuration, 1);
+        purringAudio.volume = Math.max(startVolume * (1 - progress), 0);
         
-        if (currentStep >= steps) {
-            clearInterval(fadeInterval);
+        if (progress < 1) {
+            fadeInterval = requestAnimationFrame(fadeOutStep);
+        } else {
             fadeInterval = null;
             purringAudio.pause();
-            console.log('Purring audio fade out completed');
         }
-    }, stepTime);
+    }
     
-    console.log('Purring audio fade out started');
+    fadeInterval = requestAnimationFrame(fadeOutStep);
 }
 
 if (sleepingCat && sleepingCatContainer && petHand) {
-    console.log('=== Initialization ===');
-    console.log('Sleeping cat and pet hand found!');
-    console.log('Is mobile:', isMobile);
-    console.log('Window width:', window.innerWidth);
-    console.log('Pet hand element:', petHand);
-    
     // 初始化 pet hand 位置
     petHand.style.left = '-200px';
     petHand.style.top = '-200px';
     petHand.style.display = 'none';
     
-    console.log('Initial pet hand img src:', petHand.querySelector('img').src);
-    
     // 桌面端：按住左键跟随光标（整个容器区域）
     sleepingCatContainer.addEventListener('mousedown', (e) => {
         if (isMobile) return;
-        console.log('=== Mouse down on cat (desktop) ===');
         e.preventDefault();
         e.stopPropagation();
         isPetting = true;
@@ -1418,29 +1592,22 @@ if (sleepingCat && sleepingCatContainer && petHand) {
         fadeInAudio();
         
         updatePetHandPosition(e.clientX, e.clientY);
-        
-        // 延迟检查，确保 DOM 更新
-        setTimeout(() => {
-            console.log('Pet hand after show:', {
-                display: window.getComputedStyle(petHand).display,
-                left: petHand.style.left,
-                top: petHand.style.top,
-                zIndex: window.getComputedStyle(petHand).zIndex,
-                classList: petHand.classList.toString(),
-                imgSrc: petHand.querySelector('img').src
-            });
-        }, 50);
     });
     
+    // 节流鼠标移动事件
+    let mouseMoveTimeout = null;
     document.addEventListener('mousemove', (e) => {
         if (isPetting && !isMobile) {
-            updatePetHandPosition(e.clientX, e.clientY);
+            if (mouseMoveTimeout) return;
+            mouseMoveTimeout = requestAnimationFrame(() => {
+                updatePetHandPosition(e.clientX, e.clientY);
+                mouseMoveTimeout = null;
+            });
         }
-    });
+    }, { passive: true });
     
     document.addEventListener('mouseup', () => {
         if (!isMobile && isPetting) {
-            console.log('Mouse up (desktop)');
             isPetting = false;
             petHand.classList.remove('active');
             petHand.style.display = 'none';
@@ -1454,9 +1621,6 @@ if (sleepingCat && sleepingCatContainer && petHand) {
     let isTouching = false;
     
     sleepingCatContainer.addEventListener('touchstart', (e) => {
-        console.log('=== Touch start on cat container ===');
-        console.log('Is mobile check:', isMobile);
-        console.log('Event type:', e.type);
         e.preventDefault();
         e.stopPropagation();
         
@@ -1466,9 +1630,6 @@ if (sleepingCat && sleepingCatContainer && petHand) {
         const x = touch.clientX;
         const y = touch.clientY;
         
-        console.log('Touch position - x:', x, 'y:', y);
-        console.log('Touch pageX/pageY:', touch.pageX, touch.pageY);
-        
         // 显示手
         petHand.classList.add('active');
         petHand.style.display = 'block';
@@ -1477,30 +1638,28 @@ if (sleepingCat && sleepingCatContainer && petHand) {
         fadeInAudio();
         
         updatePetHandPosition(x, y);
-        
-        console.log('Pet hand should be visible now');
-        console.log('Pet hand display:', petHand.style.display);
-        console.log('Pet hand classList:', petHand.classList.toString());
     });
     
-    // 移动端：跟随手指移动
+    // 移动端：跟随手指移动 - 节流处理
+    let touchMoveTimeout = null;
     document.addEventListener('touchmove', (e) => {
         if (isTouching) {
-            console.log('Touch move');
             e.preventDefault();
             
-            const touch = e.touches[0];
-            const x = touch.clientX;
-            const y = touch.clientY;
-            
-            updatePetHandPosition(x, y);
+            if (touchMoveTimeout) return;
+            touchMoveTimeout = requestAnimationFrame(() => {
+                const touch = e.touches[0];
+                const x = touch.clientX;
+                const y = touch.clientY;
+                updatePetHandPosition(x, y);
+                touchMoveTimeout = null;
+            });
         }
     }, { passive: false });
     
     // 移动端：松开隐藏
     document.addEventListener('touchend', (e) => {
         if (isTouching) {
-            console.log('Touch end');
             isTouching = false;
             petHand.classList.remove('active');
             petHand.style.display = 'none';
@@ -1512,7 +1671,6 @@ if (sleepingCat && sleepingCatContainer && petHand) {
     
     document.addEventListener('touchcancel', (e) => {
         if (isTouching) {
-            console.log('Touch cancel');
             isTouching = false;
             petHand.classList.remove('active');
             petHand.style.display = 'none';
@@ -1528,7 +1686,7 @@ if (sleepingCat && sleepingCatContainer && petHand) {
     });
 }
 
-console.log('%c✨ Personal Blog Loaded', 'color: #FBE9D0; font-size: 16px; font-weight: bold;');
+// Personal Blog Loaded
 
 // ==========================================
 // RANDOM SOUND EFFECTS SYSTEM
@@ -1555,7 +1713,6 @@ const soundEffects = [
 // Riproduci effetto sonoro casuale
 function playRandomSound() {
     if (soundEffects.length === 0) {
-        console.log('Nessun file audio disponibile');
         return;
     }
     
@@ -1568,19 +1725,16 @@ function playRandomSound() {
     audio.volume = 0.7; // Imposta volume al 70%
     
     // Riproduci effetto sonoro
-    audio.play().catch(error => {
-        console.log('Riproduzione effetto sonoro fallita:', error);
+    audio.play().catch(() => {
         // Se il file audio non esiste, prova a riprodurre un effetto sonoro di sistema semplice
         try {
             const fallbackAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBS13yO/eizEIHWq+8+OWT');
             fallbackAudio.volume = 0.3;
             fallbackAudio.play();
         } catch (fallbackError) {
-            console.log('Anche l\'effetto sonoro di riserva è fallito:', fallbackError);
+            // Fallback failed
         }
     });
-    
-    console.log('Riproduzione effetto sonoro:', soundFile);
 }
 
 // Aggiungi evento click al bottone effetti sonori
@@ -1600,8 +1754,6 @@ if (soundBtn) {
             soundBtn.style.transform = '';
         }, 150);
     });
-    
-    console.log('Bottone effetti sonori inizializzato');
 } else {
     console.error('Bottone effetti sonori non trovato');
 }
