@@ -338,6 +338,9 @@ const musicTracks = [
     { title: 'Hey lover', artist: 'The Daughters of Eve', genre: 'for_you', file: 'music/track33.mp3', cover: 'images/cover33.jpg' }
 ];
 
+// 运行时曲库（默认 + 本地上传/覆盖）
+let tracks = [];
+
 // Current playing audio
 let currentAudio = null;
 let currentPlayingCard = null;
@@ -423,12 +426,9 @@ function setupScrollingText(scrollElement, wrapperElement) {
 }
 
 function getCoverUrlByIndex(index) {
-    // 与渲染卡片时一致：第1首保持原样，其余使用 cover{index+1}.jpg
-    if (index >= 1) {
-        return `images/cover${index + 1}.jpg`;
-    }
-    const t = musicTracks[index];
-    return (t && t.cover) ? t.cover : 'images/cover1.jpg';
+    const t = tracks[index];
+    if (!t) return 'images/cover1.jpg';
+    return t.cover || `images/cover${index + 1}.jpg`;
 }
 
 function updateMediaSession(track, coverUrl) {
@@ -801,21 +801,15 @@ function loadMusic() {
     const grid = document.getElementById('musicGrid');
     grid.innerHTML = '';
     
-    musicTracks.forEach((track, index) => {
+    tracks.forEach((track, index) => {
         const card = document.createElement('div');
         card.className = 'music-card';
         card.dataset.genre = track.genre;
         card.dataset.index = index;
+        if (track.id) card.dataset.id = track.id;
         
-        // 封面映射：第1首保持原样；第2-30首映射到 cover2.jpg ~ cover30.jpg
-        const coverPath = index >= 1
-            ? `images/cover${index + 1}.jpg`
-            : (track.cover || 'images/cover1.jpg');
-        
-        // 音频映射：第1首使用 track1.mp3；第2-30首使用 track2.mp3 ~ track30.mp3
-        const audioPath = index === 0
-            ? 'music/track1.mp3'
-            : `music/track${index + 1}.mp3`;
+        const coverPath = track.cover ? track.cover : `images/cover${index + 1}.jpg`;
+        const audioPath = track.file ? track.file : `music/track${index + 1}.mp3`;
         
         card.innerHTML = `
             <div class="music-cover" style="background-image: url('${coverPath}')">
@@ -859,6 +853,7 @@ function loadMusic() {
                             <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
                         </svg>
                     </button>
+                    <button class="control-btn edit-btn" title="编辑此歌曲">✎</button>
                 </div>
             </div>
         `;
@@ -866,6 +861,20 @@ function loadMusic() {
         grid.appendChild(card);
         initAudioPlayer(card, track);
     });
+    
+    document.querySelectorAll('.music-card .edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const card = btn.closest('.music-card');
+            const idx = Number(card?.dataset.index || -1);
+            if (idx < 0) return;
+            openEditModal(idx);
+        });
+    });
+
+    if (typeof applyGenreFilterAndSearch === 'function') {
+        applyGenreFilterAndSearch();
+    }
 }
 
 function initAudioPlayer(card, track) {
@@ -998,7 +1007,7 @@ function initAudioPlayer(card, track) {
                 currentAudio = audio;
                 currentPlayingCard = card;
                 const idx = Number(card.dataset.index);
-                const trackData = musicTracks[idx];
+            const trackData = tracks[idx];
                 const coverUrl = getCoverUrlByIndex(idx);
                 showNowPlaying(trackData, coverUrl, true);
                 updateMediaSession(trackData, coverUrl);
@@ -1090,7 +1099,7 @@ function initAudioPlayer(card, track) {
                 }
             }, 0);
             // 更新播放状态
-            updateMediaSession(musicTracks[Number(card.dataset.index)], getCoverUrlByIndex(Number(card.dataset.index)));
+            updateMediaSession(tracks[Number(card.dataset.index)], getCoverUrlByIndex(Number(card.dataset.index)));
             nextPlayShouldRadioClick = true;
         }
     }
@@ -1215,7 +1224,7 @@ function initAudioPlayer(card, track) {
             // 顺序播放：按列表顺序找下一首
             const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
             const visibleCards = Array.from(document.querySelectorAll('.music-card'))
-                .filter(c => !c.classList.contains('hidden'))
+                .filter(c => c.style.display !== 'none')
                 .map(c => ({ card: c, index: parseInt(c.dataset.index) }))
                 .sort((a, b) => a.index - b.index);
             
@@ -1229,7 +1238,7 @@ function initAudioPlayer(card, track) {
         }
         
         // 播放下一首或重播当前
-        if (nextIndex >= 0 && nextIndex < musicTracks.length) {
+        if (nextIndex >= 0 && nextIndex < tracks.length) {
             const nextCard = document.querySelector(`.music-card[data-index="${nextIndex}"]`);
             if (nextCard) {
                 // 停止当前播放
@@ -1286,22 +1295,585 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelector('.filter-btn.active').classList.remove('active');
         btn.classList.add('active');
-        
-        const filter = btn.dataset.filter;
-        const cards = document.querySelectorAll('.music-card');
-        
-        cards.forEach(card => {
-            const match = (filter === 'all' || card.dataset.genre === filter);
-            if (match) {
-                card.classList.remove('hidden');
-            } else {
-                card.classList.add('hidden');
-            }
-        });
+        applyGenreFilterAndSearch();
     });
 });
 
-loadMusic();
+// 搜索：按标题或歌手过滤
+const musicSearch = document.getElementById('musicSearch');
+if (musicSearch) {
+    musicSearch.addEventListener('input', applyGenreFilterAndSearch);
+    const clearBtn = document.getElementById('musicSearchClear');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            musicSearch.value = '';
+            musicSearch.focus();
+            applyGenreFilterAndSearch();
+        });
+    }
+}
+
+function applyGenreFilterAndSearch() {
+    const genreFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+    const q = musicSearch?.value.trim().toLowerCase() || '';
+    const cards = document.querySelectorAll('.music-card');
+    cards.forEach(card => {
+        const idx = parseInt(card.dataset.index);
+        if (Number.isNaN(idx)) {
+            card.style.display = 'none';
+            return;
+        }
+        const t = tracks[idx];
+        if (!t) {
+            card.style.display = 'none';
+            return;
+        }
+        const passGenre = (genreFilter === 'all' || card.dataset.genre === genreFilter);
+        const hay = `${t?.title || ''} ${t?.artist || ''}`.toLowerCase();
+        const matchSearch = q === '' || hay.includes(q);
+        if (passGenre && matchSearch) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+// ================= GitHub-only 上传/编辑（不做本地持久化） =================
+const GH_OWNER = 'Miao8-11';
+const GH_REPO = 'miao.github.io';
+const GH_BRANCH = 'main';
+const RAW_BASE = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/`;
+const DATA_JSON_PATH = 'data/user-tracks.json';
+// 初始化仅用内置曲库
+tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }));
+
+// 启动时尝试从 GitHub 读取已上传的用户歌曲元数据并合并
+(async function bootstrapTracksFromGitHub() {
+    try {
+        const userTracks = await getUserTracksFromGitHubRaw();
+        if (Array.isArray(userTracks)) {
+            userTracks.forEach(entry => {
+                // entry: { title, artist, genre, coverPath, musicPath, createdAt }
+                const tr = {
+                    id: `gh-${entry.createdAt || Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+                    title: entry.title || 'Untitled',
+                    artist: entry.artist || 'Unknown',
+                    genre: entry.genre || 'for_you',
+                    cover: entry.coverPath?.startsWith('http') ? entry.coverPath : (RAW_BASE + (entry.coverPath || '')),
+                    file: entry.musicPath?.startsWith('http') ? entry.musicPath : (RAW_BASE + (entry.musicPath || '')),
+                    isUser: true,
+                    coverPathRel: entry.coverPath || '',
+                    musicPathRel: entry.musicPath || ''
+                };
+                // 基础校验：确保有文件链接
+                if (tr.file) {
+                    tracks.push(tr);
+                }
+            });
+        }
+    } catch (e) {
+        // 若文件不存在或网络问题，忽略，让默认曲库仍可用
+        console.warn('Failed to load user-tracks.json:', e?.message || e);
+    } finally {
+        loadMusic();
+    }
+})();
+
+// 上传表单
+const addBtn = document.getElementById('addTrackBtn');
+const inAudio = document.getElementById('uploadAudioInput');
+const inCover = document.getElementById('uploadCoverInput');
+const inTitle = document.getElementById('uploadTitleInput');
+const inArtist = document.getElementById('uploadArtistInput');
+const inGenre = document.getElementById('uploadGenreSelect');
+
+if (addBtn) {
+    addBtn.addEventListener('click', async () => {
+        const audioFile = inAudio?.files?.[0] || null;
+        const coverFile = inCover?.files?.[0] || null;
+        const title = (inTitle?.value || '').trim();
+        const artist = (inArtist?.value || '').trim();
+        const genre = inGenre?.value || 'for_you';
+        const ghToken = document.getElementById('ghToken')?.value?.trim();
+        if (!audioFile || !coverFile || !title || !artist || !genre || !ghToken) {
+            alert('Please fill in all required fields and provide a GitHub token.');
+            return;
+        }
+        try {
+            const nextCoverPath = await computeNextCoverPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, coverFile.name);
+            await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, nextCoverPath, coverFile, `Add cover ${nextCoverPath}`);
+            const musicPath = await computeMusicPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, audioFile.name);
+            await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, musicPath, audioFile, `Add audio ${musicPath}`);
+            // 写入/更新仓库中的 user-tracks.json 元数据
+            const newEntry = {
+                title,
+                artist,
+                genre,
+                coverPath: nextCoverPath,
+                musicPath,
+                createdAt: Date.now()
+            };
+            await upsertUserTracksJson(ghToken, newEntry);
+            const newTrack = {
+                id: `gh-${Date.now()}`,
+                title,
+                artist,
+                genre,
+                cover: RAW_BASE + nextCoverPath,
+                file: RAW_BASE + musicPath,
+                isUser: true,
+                coverPathRel: nextCoverPath,
+                musicPathRel: musicPath
+            };
+            tracks.push(newTrack);
+            loadMusic();
+        } catch (e) {
+            console.error('GitHub upload failed', e);
+            alert('GitHub upload failed. Check console for details.');
+            return;
+        }
+        if (inAudio) inAudio.value = '';
+        if (inCover) inCover.value = '';
+        if (inTitle) inTitle.value = '';
+        if (inArtist) inArtist.value = '';
+        if (inGenre) inGenre.value = 'for_you';
+        alert('Uploaded to GitHub and added to the list.');
+    });
+}
+
+// 编辑弹窗
+const editModal = document.getElementById('editModal');
+const editCloseBtn = document.getElementById('editCloseBtn');
+const editTitle = document.getElementById('editTitleInput');
+const editArtist = document.getElementById('editArtistInput');
+const editGenre = document.getElementById('editGenreSelect');
+const editAudio = document.getElementById('editAudioInput');
+const editCover = document.getElementById('editCoverInput');
+const editSaveBtn = document.getElementById('editSaveBtn');
+const editDeleteBtn = document.getElementById('editDeleteBtn');
+let editingIndex = -1;
+
+function openEditModal(index) {
+    editingIndex = index;
+    const t = tracks[index];
+    if (!t) return;
+    if (editTitle) editTitle.value = t.title || '';
+    if (editArtist) editArtist.value = t.artist || '';
+    if (editGenre) editGenre.value = t.genre || 'for_you';
+    if (editAudio) editAudio.value = '';
+    if (editCover) editCover.value = '';
+    if (editModal) editModal.style.display = 'flex';
+    if (editDeleteBtn) editDeleteBtn.style.display = t.isUser ? '' : 'none';
+}
+function closeEditModal() {
+    if (editModal) editModal.style.display = 'none';
+    editingIndex = -1;
+}
+if (editCloseBtn) editCloseBtn.addEventListener('click', closeEditModal);
+if (editModal) {
+    editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) closeEditModal();
+    });
+}
+if (editSaveBtn) {
+    editSaveBtn.addEventListener('click', async () => {
+        if (editingIndex < 0) return;
+        const t = tracks[editingIndex];
+        if (!t) return;
+        if (!t.isUser) {
+            alert('Only user-uploaded tracks can be edited with GitHub sync.');
+            return;
+        }
+        const newTitle = (editTitle?.value || '').trim();
+        const newArtist = (editArtist?.value || '').trim();
+        const newGenre = editGenre?.value || 'for_you';
+        const newAudio = editAudio?.files?.[0] || null;
+        const newCover = editCover?.files?.[0] || null;
+        const ghToken = document.getElementById('ghTokenEdit')?.value?.trim();
+        if (!newTitle || !newArtist || !newGenre || !ghToken) {
+            alert('Please fill in Title/Artist/Genre and provide GitHub token.');
+            return;
+        }
+        try {
+            let updatedCover = t.cover;
+            let updatedFile = t.file;
+            let coverRel = t.coverPathRel || getRelativePathFromRaw(t.cover);
+            let musicRel = t.musicPathRel || getRelativePathFromRaw(t.file);
+            if (newCover) {
+                const nextCoverPath = await computeNextCoverPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, newCover.name);
+                await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, nextCoverPath, newCover, `Add cover ${nextCoverPath}`);
+                updatedCover = RAW_BASE + nextCoverPath;
+                coverRel = nextCoverPath;
+            }
+            if (newAudio) {
+                const musicPath = await computeMusicPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, newAudio.name);
+                await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, musicPath, newAudio, `Add audio ${musicPath}`);
+                updatedFile = RAW_BASE + musicPath;
+                musicRel = musicPath;
+            }
+            tracks[editingIndex] = {
+                ...t,
+                title: newTitle,
+                artist: newArtist,
+                genre: newGenre,
+                cover: updatedCover,
+                file: updatedFile,
+                coverPathRel: coverRel,
+                musicPathRel: musicRel
+            };
+            await upsertUserTracksJson(ghToken, {
+                title: newTitle,
+                artist: newArtist,
+                genre: newGenre,
+                coverPath: coverRel,
+                musicPath: musicRel,
+                createdAt: Date.now()
+            });
+            loadMusic();
+        } catch (e) {
+            console.error('GitHub upload failed', e);
+            alert('GitHub upload failed. Check console for details.');
+            return;
+        }
+        closeEditModal();
+        alert('Saved (files uploaded if provided).');
+    });
+}
+if (editDeleteBtn) {
+    editDeleteBtn.addEventListener('click', async () => {
+        if (editingIndex < 0) return;
+        const t = tracks[editingIndex];
+        if (!t) return;
+        if (!t.isUser) {
+            alert('Only user-uploaded tracks can be deleted from GitHub.');
+            return;
+        }
+        const token = document.getElementById('ghTokenEdit')?.value?.trim();
+        if (!token) {
+            alert('Please provide GitHub token to delete files from repository.');
+            return;
+        }
+        try {
+            // 推断相对路径
+            const coverRel = t.coverPathRel || getRelativePathFromRaw(t.cover);
+            const audioRel = t.musicPathRel || getRelativePathFromRaw(t.file);
+            if (audioRel) {
+                await githubDeleteFile(token, GH_OWNER, GH_REPO, GH_BRANCH, audioRel, `Delete ${audioRel}`);
+            }
+            if (coverRel) {
+                await githubDeleteFile(token, GH_OWNER, GH_REPO, GH_BRANCH, coverRel, `Delete ${coverRel}`);
+            }
+            // 从索引文件移除
+            if (audioRel) {
+                await removeFromUserTracksJson(token, audioRel, coverRel);
+            }
+            // 从当前页面移除
+            tracks.splice(editingIndex, 1);
+            loadMusic();
+            closeEditModal();
+            alert('Deleted from GitHub and removed from page.');
+        } catch (e) {
+            console.error('GitHub delete failed', e);
+            alert('GitHub delete failed. Check console for details.');
+        }
+    });
+}
+
+// ================= GitHub upload helpers =================
+async function githubUploadFile(token, owner, repo, branch, path, file, message) {
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
+    const content = await fileToBase64(file);
+    // Check if file exists to include sha when overwriting
+    const existing = await githubGetFileMeta(token, owner, repo, branch, path);
+    const body = {
+        message: message || `Add ${path}`,
+        content,
+        branch
+    };
+    if (existing && existing.sha) {
+        body.sha = existing.sha;
+    }
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`GitHub PUT ${path} failed: ${res.status} ${txt}`);
+    }
+    return res.json();
+}
+
+async function githubGetFileMeta(token, owner, repo, branch, path) {
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+    const res = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+        }
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`GitHub GET ${path} failed: ${res.status} ${txt}`);
+    }
+    return res.json();
+}
+
+async function fileToBase64(file) {
+    const buffer = await file.arrayBuffer();
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+}
+
+function getNextLocalCoverIndex() {
+    // find max N from covers like images/coverN.*
+    let maxN = 0;
+    tracks.forEach(t => {
+        const rel = t.coverPathRel || getRelativePathFromRaw(t.cover);
+        const target = rel || t.cover;
+        const m = typeof target === 'string' ? target.match(/images\/cover(\d+)\./i) : null;
+        if (m) {
+            const n = parseInt(m[1], 10);
+            if (!isNaN(n)) maxN = Math.max(maxN, n);
+        }
+    });
+    // default covers up to 33 exist, so start after
+    if (maxN < 33) maxN = 33;
+    return maxN + 1;
+}
+
+async function computeNextCoverPathOnGitHub(token, owner, repo, branch, originalName) {
+    const ext = (originalName.split('.').pop() || 'jpg').toLowerCase();
+    let n = getNextLocalCoverIndex();
+    // try until we find a free path
+    for (let i = 0; i < 50; i++) {
+        const path = `images/cover${n}.${ext}`;
+        const exists = await githubGetFileMeta(token, owner, repo, branch, path);
+        if (!exists) return path;
+        n++;
+    }
+    // fallback to timestamp
+    return `images/cover-${Date.now()}.${ext}`;
+}
+
+async function computeMusicPathOnGitHub(token, owner, repo, branch, originalName) {
+    const ext = (originalName.split('.').pop() || 'mp3').toLowerCase();
+    let n = getNextLocalTrackIndex();
+    for (let i = 0; i < 200; i++) {
+        const path = `music/track${n}.${ext}`;
+        const exists = await githubGetFileMeta(token, owner, repo, branch, path);
+        if (!exists) return path;
+        n++;
+    }
+    return `music/track-${Date.now()}.${ext}`;
+}
+
+function sanitizeFileName(name) {
+    return name.replace(/[^\w.\-]+/g, '_');
+}
+
+function getNextLocalTrackIndex() {
+    // find max N from tracks like music/trackN.*
+    let maxN = 0;
+    tracks.forEach(t => {
+        const rel = t.musicPathRel || getRelativePathFromRaw(t.file);
+        const target = rel || t.file;
+        const m = typeof target === 'string' ? target.match(/music\/track(\d+)\./i) : null;
+        if (m) {
+            const n = parseInt(m[1], 10);
+            if (!isNaN(n)) maxN = Math.max(maxN, n);
+        }
+    });
+    if (maxN < 33) maxN = 33;
+    return maxN + 1;
+}
+
+// 读取 RAW JSON（无需 token）
+async function getUserTracksFromGitHubRaw() {
+    try {
+        const res = await fetch(RAW_BASE + DATA_JSON_PATH, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (Array.isArray(json)) return json;
+        return [];
+    } catch (e) {
+        // 不存在或解析失败
+        return [];
+    }
+}
+
+function base64ToString(b64) {
+    try {
+        return decodeURIComponent(escape(atob(b64)));
+    } catch {
+        // 兼容大文件：使用 TextDecoder
+        const raw = atob(b64);
+        const bytes = new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+        return new TextDecoder().decode(bytes);
+    }
+}
+
+// 追加/创建仓库中的 user-tracks.json
+async function upsertUserTracksJson(token, newEntry) {
+    // 先拿 meta（是否存在 & sha）
+    let meta = null;
+    try {
+        meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, DATA_JSON_PATH);
+    } catch (e) {
+        meta = null;
+    }
+    let list = [];
+    let sha = null;
+    if (meta && meta.content) {
+        sha = meta.sha;
+        try {
+            const contentStr = base64ToString(meta.content);
+            const parsed = JSON.parse(contentStr);
+            if (Array.isArray(parsed)) list = parsed;
+        } catch(e) {
+            list = [];
+        }
+    }
+    const normalizedMusicPath = newEntry.musicPath || '';
+    if (!normalizedMusicPath) return; // 没有明确音频路径则跳过写入
+    const normalizedCoverPath = newEntry.coverPath || '';
+    list = list.filter(item => item && item.musicPath !== normalizedMusicPath);
+    list.push({
+        title: newEntry.title || 'Untitled',
+        artist: newEntry.artist || 'Unknown',
+        genre: newEntry.genre || 'for_you',
+        coverPath: normalizedCoverPath,
+        musicPath: normalizedMusicPath,
+        createdAt: newEntry.createdAt || Date.now()
+    });
+    const bodyStr = JSON.stringify(list, null, 2);
+    const blob = new Blob([bodyStr], { type: 'application/json' });
+    // 使用已有工具上传（支持含 sha 覆盖）
+    const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(DATA_JSON_PATH)}`;
+    const contentB64 = await (async () => {
+        const buf = await blob.arrayBuffer();
+        let binary = '';
+        const bytes = new Uint8Array(buf);
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+    })();
+    const reqBody = {
+        message: meta ? `Update ${DATA_JSON_PATH}` : `Create ${DATA_JSON_PATH}`,
+        content: contentB64,
+        branch: GH_BRANCH
+    };
+    if (sha) reqBody.sha = sha;
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reqBody)
+    });
+    if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`GitHub PUT ${DATA_JSON_PATH} failed: ${res.status} ${txt}`);
+    }
+    return res.json();
+}
+
+// 从 user-tracks.json 移除某条（通过 musicPath 精确匹配）
+async function removeFromUserTracksJson(token, musicPathRel, coverPathRel = '') {
+    let meta = null;
+    try { meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, DATA_JSON_PATH); } catch {}
+    if (!meta || !meta.content) return; // 没有索引文件可跳过
+    let list = [];
+    try {
+        const contentStr = base64ToString(meta.content);
+        const parsed = JSON.parse(contentStr);
+        if (Array.isArray(parsed)) list = parsed;
+    } catch {}
+    const filtered = list.filter(x => x && x.musicPath !== musicPathRel && x.coverPath !== coverPathRel);
+    if (filtered.length === list.length) return;
+    const bodyStr = JSON.stringify(filtered, null, 2);
+    const blob = new Blob([bodyStr], { type: 'application/json' });
+    const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(DATA_JSON_PATH)}`;
+    const buf = await blob.arrayBuffer();
+    let binary = '';
+    const bytes = new Uint8Array(buf);
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    const contentB64 = btoa(binary);
+    const reqBody = {
+        message: `Update ${DATA_JSON_PATH} (remove ${musicPathRel})`,
+        content: contentB64,
+        branch: GH_BRANCH,
+        sha: meta.sha
+    };
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reqBody)
+    });
+    if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`GitHub PUT ${DATA_JSON_PATH} failed: ${res.status} ${txt}`);
+    }
+    return res.json();
+}
+
+// 删除仓库文件（需要 sha）
+async function githubDeleteFile(token, owner, repo, branch, path, message) {
+    const meta = await githubGetFileMeta(token, owner, repo, branch, path);
+    if (!meta || !meta.sha) throw new Error(`File not found: ${path}`);
+    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
+    const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: message || `Delete ${path}`,
+            sha: meta.sha,
+            branch
+        })
+    });
+    if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        throw new Error(`GitHub DELETE ${path} failed: ${res.status} ${txt}`);
+    }
+    return res.json();
+}
+
+function getRelativePathFromRaw(url) {
+    if (!url) return '';
+    if (url.startsWith(RAW_BASE)) return url.slice(RAW_BASE.length);
+    if (url.startsWith('https://github.com/') && url.includes('/raw/')) {
+        const parts = url.split('/raw/');
+        return parts[1] || '';
+    }
+    if (url.startsWith('http')) return '';
+    return url;
+}
 
 // 全局：为其它按钮添加 click 音（避免与播放/进度条重复触发）
 document.addEventListener('click', (ev) => {
