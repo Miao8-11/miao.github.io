@@ -1,18 +1,18 @@
 // ==========================================
-// ENTRANCE ANIMATION - 进入动画控制
+// ENTRANCE ANIMATION
 // ==========================================
 const entranceOverlay = document.getElementById('entranceOverlay');
 const body = document.body;
 
-// 页面加载时立即添加类名以隐藏网站内容（防止闪现）
-// body标签在HTML中已经添加了entrance-active类
-// 这里确保覆盖层存在
+// Add class immediately on page load to hide website content (prevent flash)
+// body tag already has entrance-active class in HTML
+// Ensure overlay exists
 if (!entranceOverlay) {
-    // 如果覆盖层不存在，确保界面元素保持隐藏
+    // If overlay doesn't exist, keep UI elements hidden
     body.classList.add('entrance-active');
 }
 
-// 页面加载完成后，延迟移除进入动画覆盖层并触发分阶段淡入
+// After page load, delay removing entrance animation overlay and trigger staged fade-in
 window.addEventListener('load', () => {
     setTimeout(() => {
         if (entranceOverlay) {
@@ -20,41 +20,41 @@ window.addEventListener('load', () => {
             entranceOverlay.style.visibility = 'hidden';
             entranceOverlay.style.opacity = '0';
             body.classList.remove('entrance-active');
-            body.classList.add('page-ready'); // 添加类名以触发分阶段淡入动画
-            body.classList.add('background-visible'); // 确保背景图显示
+            body.classList.add('page-ready'); // Add class to trigger staged fade-in animation
+            body.classList.add('background-visible'); // Ensure background image displays
         }
-    }, 2000); // 与动画时长一致（2秒）
+    }, 2000); // Match animation duration (2 seconds)
 });
 
 // ==========================================
-// THEME SWITCHER - 2个主题切换
+// THEME SWITCHER - 2 themes
 // ==========================================
 const themeToggle = document.getElementById('themeToggle');
 
-// 主题列表：Vibrant (默认) 和 Pastel
+// Theme list: Vibrant (default) and Pastel
 const themes = ['vibrant', 'pastel'];
 let currentThemeIndex = 0;
 
-// 从 localStorage 加载主题
+// Load theme from localStorage
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'pastel') {
     body.classList.add('theme-pastel');
     currentThemeIndex = 1;
 }
 
-// 切换主题 - 2个主题循环
+// Switch theme - cycle between 2 themes
 themeToggle.addEventListener('click', (e) => {
     e.preventDefault();
     
-    // 切换到下一个主题
+    // Switch to next theme
     currentThemeIndex = (currentThemeIndex + 1) % 2;
     
     if (currentThemeIndex === 1) {
-        // 切换到 Pastel
+        // Switch to Pastel
         body.classList.add('theme-pastel');
         localStorage.setItem('theme', 'pastel');
     } else {
-        // 切换回 Vibrant (默认)
+        // Switch back to Vibrant (default)
         body.classList.remove('theme-pastel');
         localStorage.setItem('theme', 'vibrant');
     }
@@ -83,7 +83,7 @@ class FullPageScroll {
             this.bottomNavBtn.addEventListener('click', () => this.next());
         }
         
-        // Monitor scroll to show/hide bottom button - 节流处理
+        // Monitor scroll to show/hide bottom button - throttled
         let scrollTimeout = null;
         this.sections.forEach(section => {
             section.addEventListener('scroll', () => {
@@ -91,7 +91,7 @@ class FullPageScroll {
                 scrollTimeout = setTimeout(() => {
                     this.checkBottomNav();
                     scrollTimeout = null;
-                }, 100); // 每100ms最多执行一次
+                }, 100); // Execute at most once per 100ms
             }, { passive: true });
         });
         
@@ -114,7 +114,7 @@ class FullPageScroll {
             });
         });
         
-        // Touch events - 改进移动端滚动检测
+        // Touch events - improved mobile scroll detection
         let touchStart = 0;
         let touchStartTime = 0;
         
@@ -124,7 +124,7 @@ class FullPageScroll {
         });
         
         window.addEventListener('touchmove', (e) => {
-            // 允许section内部滚动
+            // Allow scrolling inside section
             const activeSection = this.sections[this.current];
             const touchCurrent = e.touches[0].clientY;
             const diff = touchStart - touchCurrent;
@@ -132,9 +132,9 @@ class FullPageScroll {
             const atTop = activeSection.scrollTop === 0;
             const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
             
-            // 只在边界时阻止默认行为
+            // Only prevent default behavior at boundaries
             if ((diff > 0 && atBottom) || (diff < 0 && atTop)) {
-                // 不阻止，让touchend处理
+                // Don't prevent, let touchend handle it
             }
         });
         
@@ -149,14 +149,14 @@ class FullPageScroll {
             const atTop = activeSection.scrollTop === 0;
             const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
             
-            // 滑动阈值和时间检测
+            // Swipe threshold and time detection
             if (Math.abs(diff) > 80 && touchDuration < 400) {
                 if (diff < 0 && atTop && this.current > 0) {
-                    // 向下拉（切换到上一个section）
+                    // Swipe down (switch to previous section)
                     e.preventDefault();
                     this.prev();
                 }
-                // 向上拉不自动切换，需要点击底部按钮
+                // Swipe up doesn't auto-switch, need to click bottom button
             }
         });
     }
@@ -181,13 +181,13 @@ class FullPageScroll {
         const activeSection = this.sections[this.current];
         const atTop = activeSection.scrollTop === 0;
         
-        // 只在向上滚动到顶部时自动切换到上一个section
+        // Only auto-switch to previous section when scrolling up to top
         if (e.deltaY < 0 && atTop) {
             e.preventDefault();
             this.prev();
         }
         
-        // 向下滚动不自动切换，需要点击底部按钮
+        // Scrolling down doesn't auto-switch, need to click bottom button
     }
     
     handleKeyboard(e) {
@@ -338,7 +338,7 @@ const musicTracks = [
     { title: 'Hey lover', artist: 'The Daughters of Eve', genre: 'for_you', file: 'music/track33.mp3', cover: 'images/cover33.jpg' }
 ];
 
-// 运行时曲库（默认 + 本地上传/覆盖）
+// Runtime track library (default + user uploads/overrides)
 let tracks = [];
 
 // Current playing audio
@@ -346,48 +346,48 @@ let currentAudio = null;
 let currentPlayingCard = null;
 const nowPlayingBar = document.getElementById('nowPlaying');
 const navEl = document.querySelector('.nav');
-// 全局音频对象数组，用于防止多首歌同时播放
+// Global audio objects array to prevent multiple tracks playing simultaneously
 const allAudioObjects = [];
 
-// Playback modes: 'single' (单曲重播), 'shuffle' (随机播放), 'sequential' (顺序播放)
+// Playback modes: 'single' (single repeat), 'shuffle' (shuffle), 'sequential' (sequential)
 let playbackMode = 'sequential';
-// 全局按钮点击音效 & 老收音机音效
+// Global button click sound effect & old radio sound effect
 const buttonClickSfx = new Audio('button_sound/button-click.mp3');
 buttonClickSfx.volume = 0.35;
 const radioClickSfx = new Audio('button_sound/old-radio-button-click.mp3');
 radioClickSfx.volume = 0.6;
-let nextPlayShouldRadioClick = true; // 首次手动播放前先播 old radio 音效
+let nextPlayShouldRadioClick = true; // Play old radio sound effect before first manual play
 let isAutoAdvance = false;
 let isRadioSfxPlaying = false;
-let bongoShown = false; // 仅触发一次的提示
-let pendingRadioAudio = null; // 正在等待radio音效播放完成的音频对象
+let bongoShown = false; // One-time trigger flag
+let pendingRadioAudio = null; // Audio object waiting for radio sound effect to finish
 
 // ===================== Mobile Lock Screen / Media Session =====================
 let mediaSessionHandlersSet = false;
 
-// ===================== 文字滚动功能 =====================
+// ===================== Scrolling Text Function =====================
 function setupScrollingText(scrollElement, wrapperElement) {
     if (!scrollElement || !wrapperElement) return;
     
-    // 等待DOM渲染完成
+    // Wait for DOM rendering to complete
     setTimeout(() => {
         const wrapperWidth = wrapperElement.offsetWidth;
         const scrollWidth = scrollElement.scrollWidth;
         
         if (scrollWidth > wrapperWidth) {
-            // 文字溢出，启用滚动
+            // Text overflow, enable scrolling
             const overflow = scrollWidth - wrapperWidth;
-            const duration = scrollElement.classList.contains('player__legend__title-scroll') ? 15 : 12; // 播放器15秒，歌曲列表12秒
-            const pauseTime = 2; // 开始和结束的暂停时间（秒）
+            const duration = scrollElement.classList.contains('player__legend__title-scroll') ? 15 : 12; // Player 15s, track list 12s
+            const pauseTime = 2; // Pause time at start and end (seconds)
             
-            // 计算滚动距离
-            const scrollDistance = overflow + 20; // 多滚动一点确保完全显示
+            // Calculate scroll distance
+            const scrollDistance = overflow + 20; // Scroll a bit more to ensure complete display
             
-            // 设置CSS变量来动态控制滚动距离
+            // Set CSS variables to dynamically control scroll distance
             scrollElement.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
             scrollElement.style.setProperty('--scroll-duration', `${duration}s`);
             
-            // 确定动画名称
+            // Determine animation name
             let animationName = 'scrollText';
             if (scrollElement.classList.contains('track-title-scroll')) {
                 animationName = 'scrollTextTrack';
@@ -395,7 +395,7 @@ function setupScrollingText(scrollElement, wrapperElement) {
                 animationName = 'scrollTextArtist';
             }
             
-            // 更新动画关键帧（使用唯一ID避免冲突）
+            // Update animation keyframes (use unique ID to avoid conflicts)
             const styleId = `dynamic-scroll-${animationName}`;
             let style = document.getElementById(styleId);
             if (!style) {
@@ -416,7 +416,7 @@ function setupScrollingText(scrollElement, wrapperElement) {
                 }
             `;
             
-            // 设置动画名称
+            // Set animation name
             scrollElement.style.animationName = animationName;
             scrollElement.classList.add('scrolling');
         } else {
@@ -511,26 +511,26 @@ function showNowPlaying(track, coverUrl, isPlaying) {
                     <p class="player__legend__sub-title"></p>
                 </div>
                 <div class="player__controls">
-                    <button class="np-btn np-mode" title="播放模式: ${playbackMode === 'single' ? '单曲重播' : playbackMode === 'shuffle' ? '随机播放' : '顺序播放'}">${modeIcons[playbackMode]}</button>
+                    <button class="np-btn np-mode" title="Playback Mode: ${playbackMode === 'single' ? 'Single Repeat' : playbackMode === 'shuffle' ? 'Shuffle' : 'Sequential'}">${modeIcons[playbackMode]}</button>
                     <button class="np-btn np-toggle" title="${isPlaying ? 'Pause' : 'Play'}">${isPlaying ? '❚❚' : '▶'}</button>
                 </div>
             </div>
         </div>
     `;
-    // 设置滚动动画
+    // Setup scrolling animation
     setupScrollingText(nowPlayingBar.querySelector('.player__legend__title-scroll'), nowPlayingBar.querySelector('.player__legend__title-scroll-wrapper'));
-    // 重置动画状态，确保每次显示都能触发淡入
+    // Reset animation state to ensure fade-in triggers each time
     nowPlayingBar.style.animation = 'none';
     nowPlayingBar.style.display = 'flex';
     setNowPlayingTop();
-    // 强制重排，然后重新应用动画
+    // Force reflow, then reapply animation
     void nowPlayingBar.offsetWidth;
     nowPlayingBar.style.animation = '';
 
     const toggleBtn = nowPlayingBar.querySelector('.np-toggle');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', (e) => {
-            // 这个按钮不播放 button-click 音效
+            // This button doesn't play button-click sound effect
             e.stopPropagation();
             if (currentAudio) {
                 if (currentAudio.paused) {
@@ -549,7 +549,7 @@ function showNowPlaying(track, coverUrl, isPlaying) {
     const modeBtn = nowPlayingBar.querySelector('.np-mode');
     if (modeBtn) {
         modeBtn.addEventListener('click', () => {
-            // 循环切换模式: sequential -> shuffle -> single -> sequential
+            // Cycle through modes: sequential -> shuffle -> single -> sequential
             if (playbackMode === 'sequential') {
                 playbackMode = 'shuffle';
             } else if (playbackMode === 'shuffle') {
@@ -558,17 +558,17 @@ function showNowPlaying(track, coverUrl, isPlaying) {
                 playbackMode = 'sequential';
             }
             modeBtn.textContent = modeIcons[playbackMode];
-            modeBtn.title = `播放模式: ${playbackMode === 'single' ? '单曲重播' : playbackMode === 'shuffle' ? '随机播放' : '顺序播放'}`;
+            modeBtn.title = `Playback Mode: ${playbackMode === 'single' ? 'Single Repeat' : playbackMode === 'shuffle' ? 'Shuffle' : 'Sequential'}`;
             
-            // 显示模式提示
+            // Show mode toast
             showModeToast(playbackMode);
         });
     }
 }
 
-// 显示播放模式提示（英文，淡出效果）
+// Show playback mode toast (fade out effect)
 function showModeToast(mode) {
-    // 移除已存在的提示
+    // Remove existing toast
     const existingToast = document.querySelector('.mode-toast');
     if (existingToast) {
         existingToast.remove();
@@ -585,12 +585,12 @@ function showModeToast(mode) {
     toast.textContent = modeTexts[mode] || mode;
     document.body.appendChild(toast);
     
-    // 触发显示动画
+    // Trigger show animation
     setTimeout(() => {
         toast.classList.add('show');
     }, 10);
     
-    // 动画结束后移除
+    // Remove after animation ends
     setTimeout(() => {
         toast.remove();
     }, 2100);
@@ -1384,13 +1384,26 @@ async function refreshTracksFromGitHub() {
         
         // 从 GitHub 获取最新的用户歌曲列表（带重试机制）
         const userTracks = await getUserTracksFromGitHubRaw();
-        if (Array.isArray(userTracks) && userTracks.length > 0) {
-            userTracks.forEach(entry => {
+        if (Array.isArray(userTracks)) {
+            // 按 createdAt 排序，确保新上传的歌曲在后面
+            const sortedTracks = userTracks.sort((a, b) => {
+                const timeA = a.createdAt || 0;
+                const timeB = b.createdAt || 0;
+                return timeA - timeB;
+            });
+            
+            sortedTracks.forEach(entry => {
                 // entry: { title, artist, genre, coverPath, musicPath, createdAt }
                 // 跳过 ethereal 相关歌曲
                 const title = (entry.title || '').toLowerCase();
                 if (title.includes('ethereal')) {
                     console.log('Skipping ethereal song:', entry.title);
+                    return;
+                }
+                
+                // 验证必要字段
+                if (!entry.musicPath || !entry.coverPath) {
+                    console.warn('Skipping invalid entry (missing paths):', entry.title);
                     return;
                 }
                 
@@ -1410,6 +1423,10 @@ async function refreshTracksFromGitHub() {
                     tracks.push(tr);
                 }
             });
+            
+            console.log(`Loaded ${sortedTracks.length} user tracks from GitHub`);
+        } else {
+            console.log('No user tracks found or invalid format');
         }
     } catch (e) {
         // 若文件不存在或网络问题，忽略，让默认曲库仍可用
@@ -1452,6 +1469,7 @@ if (addBtn) {
         
         try {
             // 步骤1: 上传文件到 GitHub
+            addBtn.textContent = 'Uploading files...';
             const nextCoverPath = await computeNextCoverPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, coverFile.name);
             await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, nextCoverPath, coverFile, `Add cover ${nextCoverPath}`);
             const musicPath = await computeMusicPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, audioFile.name);
@@ -1468,28 +1486,33 @@ if (addBtn) {
                 createdAt
             };
             
-            // 步骤3: 立即添加到本地 tracks 数组并显示（不等待 GitHub JSON 更新）
-            const newTrack = {
-                id: `gh-${createdAt}-${Math.random().toString(36).slice(2,8)}`,
-                title,
-                artist,
-                genre,
-                cover: RAW_BASE + nextCoverPath,
-                file: RAW_BASE + musicPath,
-                isUser: true,
-                coverPathRel: nextCoverPath,
-                musicPathRel: musicPath
-            };
-            tracks.push(newTrack);
-            // 立即重新渲染，确保新歌显示
-            loadMusic();
+            // 步骤3: 同步更新 user-tracks.json（必须等待完成，确保数据保存）
+            addBtn.textContent = 'Saving to user-tracks.json...';
+            await upsertUserTracksJson(ghToken, newEntry);
+            console.log('User tracks JSON updated successfully');
             
-            // 步骤4: 异步更新 user-tracks.json（后台进行，不影响显示）
-            upsertUserTracksJson(ghToken, newEntry).then(() => {
-                console.log('User tracks JSON updated successfully');
-            }).catch(err => {
-                console.warn('Failed to update user-tracks.json (song is already displayed):', err);
-            });
+            // 步骤4: 更新 script.js 中的 musicTracks 数组
+            addBtn.textContent = 'Updating script.js...';
+            try {
+                await updateScriptJsMusicTracks(ghToken, {
+                    title,
+                    artist,
+                    genre,
+                    file: musicPath,
+                    cover: nextCoverPath
+                });
+                console.log('Script.js updated successfully with new track');
+            } catch (e) {
+                console.warn('Failed to update script.js (non-critical):', e);
+                // 不抛出错误，因为 user-tracks.json 已经更新，新歌仍可通过 JSON 加载
+            }
+            
+            // 等待一小段时间，确保 GitHub API 完全更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 步骤5: 重新从 GitHub 获取最新列表（包含刚上传的歌曲）
+            addBtn.textContent = 'Refreshing list...';
+            await refreshTracksFromGitHub();
             
             // 清空表单
             if (inAudio) inAudio.value = '';
@@ -1580,33 +1603,34 @@ if (editSaveBtn) {
                 updatedFile = RAW_BASE + musicPath;
                 musicRel = musicPath;
             }
-            // 立即更新本地 tracks 数组
-            tracks[editingIndex] = {
-                ...t,
-                title: newTitle,
-                artist: newArtist,
-                genre: newGenre,
-                cover: updatedCover,
-                file: updatedFile,
-                coverPathRel: coverRel,
-                musicPathRel: musicRel
-            };
-            // 立即重新渲染
-            loadMusic();
-            
-            // 异步更新 user-tracks.json（后台进行）
-            upsertUserTracksJson(ghToken, {
+            // 同步更新 user-tracks.json（必须等待完成，确保数据保存）
+            await upsertUserTracksJson(ghToken, {
                 title: newTitle,
                 artist: newArtist,
                 genre: newGenre,
                 coverPath: coverRel,
                 musicPath: musicRel,
                 createdAt: t.id ? (parseInt(t.id.split('-')[1]) || Date.now()) : Date.now()
-            }).then(() => {
-                console.log('User tracks JSON updated successfully');
-            }).catch(err => {
-                console.warn('Failed to update user-tracks.json (changes are already displayed):', err);
             });
+            console.log('User tracks JSON updated successfully');
+            
+            // 如果修改了文件路径，需要更新 script.js
+            if (newAudio || newCover) {
+                try {
+                    // 删除旧的条目并添加新的（通过更新 script.js）
+                    // 注意：编辑时通常不改变文件路径，所以这里先跳过 script.js 更新
+                    // 如果路径改变了，需要删除旧条目并添加新条目
+                    console.log('File paths changed, but script.js update skipped for edits');
+                } catch (e) {
+                    console.warn('Failed to update script.js (non-critical):', e);
+                }
+            }
+            
+            // 等待一小段时间，确保 GitHub API 完全更新
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // 重新从 GitHub 获取最新列表（确保数据同步）
+            await refreshTracksFromGitHub();
         } catch (e) {
             console.error('GitHub upload failed', e);
             alert('GitHub upload failed: ' + (e.message || 'Unknown error') + '\nCheck console for details.');
@@ -1640,21 +1664,31 @@ if (editDeleteBtn) {
             if (coverRel) {
                 await githubDeleteFile(token, GH_OWNER, GH_REPO, GH_BRANCH, coverRel, `Delete ${coverRel}`);
             }
-            // 立即从本地 tracks 数组移除
-            if (editingIndex >= 0 && editingIndex < tracks.length) {
-                tracks.splice(editingIndex, 1);
-            }
-            // 立即重新渲染
-            loadMusic();
-            
-            // 异步从 GitHub 删除（后台进行）
+            // 同步从 user-tracks.json 移除（必须等待完成，确保数据保存）
             if (audioRel) {
-                removeFromUserTracksJson(token, audioRel, coverRel).then(() => {
-                    console.log('User tracks JSON updated successfully');
-                }).catch(err => {
-                    console.warn('Failed to remove from user-tracks.json (song is already removed from display):', err);
-                });
+                await removeFromUserTracksJson(token, audioRel, coverRel);
+                console.log('User tracks JSON updated successfully');
             }
+            
+            // 从 script.js 中删除歌曲条目
+            try {
+                await removeFromScriptJsMusicTracks(token, {
+                    title: t.title,
+                    artist: t.artist,
+                    file: audioRel || t.file,
+                    cover: coverRel || t.cover
+                });
+                console.log('Script.js updated successfully (removed track)');
+            } catch (e) {
+                console.warn('Failed to remove from script.js (non-critical):', e);
+                // 不抛出错误，因为 user-tracks.json 已经更新
+            }
+            
+            // 等待一小段时间，确保 GitHub API 完全更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 重新从 GitHub 获取最新列表（确保数据同步）
+            await refreshTracksFromGitHub();
             
             closeEditModal();
             alert('Deleted successfully! Song removed from the list.');
@@ -1788,38 +1822,54 @@ function getNextLocalTrackIndex() {
 // 读取 RAW JSON（无需 token）
 async function getUserTracksFromGitHubRaw(retryCount = 0) {
     try {
-        // 添加时间戳参数强制刷新，避免浏览器/CDN缓存
+        // 使用多个时间戳参数和随机数强制刷新，避免浏览器/CDN缓存
         const timestamp = Date.now();
-        const url = `${RAW_BASE}${DATA_JSON_PATH}?t=${timestamp}&_=${Date.now()}`;
+        const random = Math.random().toString(36).slice(2);
+        const url = `${RAW_BASE}${DATA_JSON_PATH}?t=${timestamp}&_=${Date.now()}&r=${random}&nocache=${timestamp}`;
+        
         const res = await fetch(url, { 
+            method: 'GET',
             cache: 'no-store',
             headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
                 'Pragma': 'no-cache',
-                'Expires': '0'
+                'Expires': '0',
+                'If-None-Match': '', // 强制不使用 ETag 缓存
+                'If-Modified-Since': '' // 强制不使用 Last-Modified 缓存
             }
         });
+        
         if (!res.ok) {
-            if (res.status === 404) return []; // 文件不存在，返回空数组
-            throw new Error(`HTTP ${res.status}`);
+            if (res.status === 404) {
+                console.log('user-tracks.json not found, returning empty array');
+                return []; // 文件不存在，返回空数组
+            }
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         }
+        
         const json = await res.json();
         if (Array.isArray(json)) {
             // 过滤掉可能的 ethereal 歌曲
-            return json.filter(entry => {
+            const filtered = json.filter(entry => {
+                if (!entry) return false;
                 const title = (entry.title || '').toLowerCase();
                 return !title.includes('ethereal');
             });
+            console.log(`Fetched ${filtered.length} tracks from user-tracks.json (filtered ${json.length - filtered.length} ethereal)`);
+            return filtered;
         }
+        console.warn('user-tracks.json is not an array:', typeof json);
         return [];
     } catch (e) {
         // 如果失败且还有重试次数，等待后重试
         if (retryCount < 2) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+            const waitTime = 1000 * (retryCount + 1);
+            console.log(`Retry ${retryCount + 1}/2 after ${waitTime}ms...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
             return getUserTracksFromGitHubRaw(retryCount + 1);
         }
         // 不存在或解析失败
-        console.warn('Failed to fetch user-tracks.json:', e?.message || e);
+        console.warn('Failed to fetch user-tracks.json after retries:', e?.message || e);
         return [];
     }
 }
@@ -2008,6 +2058,290 @@ function getRelativePathFromRaw(url) {
     }
     if (url.startsWith('http')) return '';
     return url;
+}
+
+// 从 script.js 中删除指定歌曲条目
+async function removeFromScriptJsMusicTracks(token, trackToRemove) {
+    try {
+        const scriptPath = 'script.js';
+        const meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, scriptPath);
+        if (!meta || !meta.content) {
+            throw new Error('Failed to read script.js from GitHub');
+        }
+        
+        const scriptContent = base64ToString(meta.content);
+        const tracksStartMarker = 'const musicTracks = [';
+        const startIndex = scriptContent.indexOf(tracksStartMarker);
+        if (startIndex === -1) {
+            throw new Error('Could not find musicTracks array in script.js');
+        }
+        
+        const arrayStart = startIndex + tracksStartMarker.length;
+        let braceCount = 0;
+        let inString = false;
+        let stringChar = null;
+        let arrayEnd = -1;
+        
+        for (let i = arrayStart; i < scriptContent.length; i++) {
+            const char = scriptContent[i];
+            const prevChar = i > 0 ? scriptContent[i - 1] : '';
+            
+            if (!inString && (char === '"' || char === "'" || char === '`')) {
+                inString = true;
+                stringChar = char;
+            } else if (inString && char === stringChar && prevChar !== '\\') {
+                inString = false;
+                stringChar = null;
+            }
+            
+            if (!inString) {
+                if (char === '[') braceCount++;
+                else if (char === ']') {
+                    braceCount--;
+                    if (braceCount === 0) {
+                        arrayEnd = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (arrayEnd === -1) {
+            throw new Error('Could not find end of musicTracks array');
+        }
+        
+        const arrayContent = scriptContent.substring(arrayStart, arrayEnd);
+        
+        // 找到要删除的条目（通过 file 或 cover 路径匹配）
+        // 提取相对路径用于匹配
+        const filePath = trackToRemove.file || '';
+        const coverPath = trackToRemove.cover || '';
+        
+        // 获取相对路径（去掉 RAW_BASE 前缀）
+        const fileRel = filePath.startsWith(RAW_BASE) ? filePath.slice(RAW_BASE.length) : filePath;
+        const coverRel = coverPath.startsWith(RAW_BASE) ? coverPath.slice(RAW_BASE.length) : coverPath;
+        
+        // 提取文件名用于匹配
+        const fileName = fileRel.split('/').pop() || fileRel;
+        const coverName = coverRel.split('/').pop() || coverRel;
+        
+        const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const filePattern = escapeRegex(fileName);
+        const coverPattern = escapeRegex(coverName);
+        
+        // 匹配包含该文件路径的条目（匹配 file 或 cover 字段）
+        // 使用多行模式匹配整个对象
+        const patterns = [];
+        if (filePattern) patterns.push(`file:\\s*['"][^'"]*${filePattern}[^'"]*['"]`);
+        if (coverPattern) patterns.push(`cover:\\s*['"][^'"]*${coverPattern}[^'"]*['"]`);
+        
+        if (patterns.length === 0) {
+            throw new Error('No file or cover path provided for matching');
+        }
+        
+        // 构建正则表达式：匹配包含这些路径的对象
+        const patternStr = patterns.join('|');
+        // 匹配整个对象，从 { 开始到 } 结束，包括前面的空白和后面的逗号
+        const regex = new RegExp(`\\s*\\{[^}]*(${patternStr})[^}]*\\},?\\s*\\n?`, 'g');
+        let updatedArrayContent = arrayContent.replace(regex, '');
+        
+        // 清理多余的逗号和空白
+        // 移除连续的空行
+        updatedArrayContent = updatedArrayContent.replace(/\n\s*\n\s*\n/g, '\n');
+        // 移除数组末尾的逗号（在 ] 之前的逗号）
+        updatedArrayContent = updatedArrayContent.replace(/,(\s*\n\s*\]|$)/g, '$1');
+        // 移除开头和结尾的空白行
+        updatedArrayContent = updatedArrayContent.trim();
+        
+        const beforeArray = scriptContent.substring(0, arrayStart);
+        const afterArray = scriptContent.substring(arrayEnd);
+        const updatedContent = beforeArray + cleanedArray + afterArray;
+        
+        const updatedBase64 = await (async () => {
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(updatedContent);
+            let binary = '';
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) {
+                binary += String.fromCharCode.apply(null, Array.from(bytes.slice(i, i + chunk)));
+            }
+            return btoa(binary);
+        })();
+        
+        const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(scriptPath)}`;
+        const reqBody = {
+            message: `Remove track: ${trackToRemove.title} by ${trackToRemove.artist}`,
+            content: updatedBase64,
+            branch: GH_BRANCH,
+            sha: meta.sha
+        };
+        
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reqBody)
+        });
+        
+        if (!res.ok) {
+            const txt = await res.text().catch(() => '');
+            throw new Error(`GitHub PUT script.js failed: ${res.status} ${txt}`);
+        }
+        
+        console.log('Successfully removed track from script.js');
+        return res.json();
+    } catch (e) {
+        console.error('Failed to remove from script.js:', e);
+        throw e;
+    }
+}
+
+// 更新 GitHub 上的 script.js 文件中的 musicTracks 数组
+async function updateScriptJsMusicTracks(token, newTrack) {
+    try {
+        // 步骤1: 读取 GitHub 上的 script.js 文件
+        const scriptPath = 'script.js';
+        const meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, scriptPath);
+        if (!meta || !meta.content) {
+            throw new Error('Failed to read script.js from GitHub');
+        }
+        
+        // 步骤2: 解码文件内容（正确处理 UTF-8）
+        const scriptContent = base64ToString(meta.content);
+        
+        // 步骤3: 找到 musicTracks 数组的位置
+        const tracksStartMarker = 'const musicTracks = [';
+        const tracksEndMarker = '];';
+        
+        const startIndex = scriptContent.indexOf(tracksStartMarker);
+        if (startIndex === -1) {
+            throw new Error('Could not find musicTracks array in script.js');
+        }
+        
+        // 找到数组结束位置（]; 在 musicTracks 定义之后）
+        const arrayStart = startIndex + tracksStartMarker.length;
+        let braceCount = 0;
+        let inString = false;
+        let stringChar = null;
+        let arrayEnd = -1;
+        
+        for (let i = arrayStart; i < scriptContent.length; i++) {
+            const char = scriptContent[i];
+            const prevChar = i > 0 ? scriptContent[i - 1] : '';
+            
+            // 处理字符串（跳过字符串内的字符）
+            if (!inString && (char === '"' || char === "'" || char === '`')) {
+                inString = true;
+                stringChar = char;
+            } else if (inString && char === stringChar && prevChar !== '\\') {
+                inString = false;
+                stringChar = null;
+            }
+            
+            if (!inString) {
+                if (char === '[') braceCount++;
+                else if (char === ']') {
+                    braceCount--;
+                    if (braceCount === 0) {
+                        arrayEnd = i;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (arrayEnd === -1) {
+            throw new Error('Could not find end of musicTracks array');
+        }
+        
+        // 步骤4: 提取数组内容（保留原始格式）
+        const arrayContent = scriptContent.substring(arrayStart, arrayEnd);
+        
+        // 步骤5: 准备新歌曲条目（转义单引号和特殊字符）
+        const escapeSingleQuote = (str) => {
+            if (!str) return '';
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        };
+        const newTrackLine = `    { title: '${escapeSingleQuote(newTrack.title)}', artist: '${escapeSingleQuote(newTrack.artist)}', genre: '${newTrack.genre}', file: '${newTrack.file}', cover: '${newTrack.cover}' }`;
+        
+        // 步骤6: 在数组末尾添加新条目
+        // 找到最后一个非空白字符的位置
+        let lastNonWhitespace = arrayContent.length - 1;
+        while (lastNonWhitespace >= 0 && /\s/.test(arrayContent[lastNonWhitespace])) {
+            lastNonWhitespace--;
+        }
+        
+        let updatedArrayContent;
+        if (lastNonWhitespace < 0) {
+            // 数组为空
+            updatedArrayContent = newTrackLine;
+        } else {
+            // 检查最后一个字符是否是逗号
+            const lastChar = arrayContent[lastNonWhitespace];
+            const beforeLast = arrayContent.substring(0, lastNonWhitespace + 1);
+            const afterLast = arrayContent.substring(lastNonWhitespace + 1);
+            
+            if (lastChar === ',') {
+                // 如果最后有逗号，直接添加新条目
+                updatedArrayContent = beforeLast + '\n' + newTrackLine + afterLast;
+            } else {
+                // 如果最后没有逗号，添加逗号后再添加新条目
+                updatedArrayContent = beforeLast + ',\n' + newTrackLine + afterLast;
+            }
+        }
+        
+        // 步骤7: 重构文件内容（保持原有格式）
+        const beforeArray = scriptContent.substring(0, arrayStart);
+        const afterArray = scriptContent.substring(arrayEnd);
+        const updatedContent = beforeArray + updatedArrayContent + afterArray;
+        
+        // 步骤8: 将更新后的内容编码为 base64（正确处理 UTF-8）
+        const updatedBase64 = await (async () => {
+            // 使用 TextEncoder 正确处理 UTF-8 编码
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(updatedContent);
+            // 将字节数组转换为 base64
+            let binary = '';
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) {
+                binary += String.fromCharCode.apply(null, Array.from(bytes.slice(i, i + chunk)));
+            }
+            return btoa(binary);
+        })();
+        
+        // 步骤9: 上传更新后的 script.js 文件
+        const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(scriptPath)}`;
+        const reqBody = {
+            message: `Add track: ${newTrack.title} by ${newTrack.artist}`,
+            content: updatedBase64,
+            branch: GH_BRANCH,
+            sha: meta.sha
+        };
+        
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reqBody)
+        });
+        
+        if (!res.ok) {
+            const txt = await res.text().catch(() => '');
+            throw new Error(`GitHub PUT script.js failed: ${res.status} ${txt}`);
+        }
+        
+        console.log('Successfully updated script.js with new track');
+        return res.json();
+    } catch (e) {
+        console.error('Failed to update script.js:', e);
+        throw e;
+    }
 }
 
 // 全局：为其它按钮添加 click 音（避免与播放/进度条重复触发）
