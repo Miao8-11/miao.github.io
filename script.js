@@ -873,12 +873,14 @@ function loadMusic() {
     });
 
     // 强制重新应用过滤和搜索，确保新添加的歌曲正确显示
-    // 使用 setTimeout 确保 DOM 完全渲染后再应用过滤
-    setTimeout(() => {
-        if (typeof applyGenreFilterAndSearch === 'function') {
-            applyGenreFilterAndSearch();
-        }
-    }, 0);
+    // 使用 requestAnimationFrame 确保 DOM 完全渲染后再应用过滤
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (typeof applyGenreFilterAndSearch === 'function') {
+                applyGenreFilterAndSearch();
+            }
+        });
+    });
 }
 
 function initAudioPlayer(card, track) {
@@ -1322,26 +1324,30 @@ function applyGenreFilterAndSearch() {
     const q = musicSearch?.value.trim().toLowerCase() || '';
     const cards = document.querySelectorAll('.music-card');
     
+    let visibleCount = 0;
+    
     cards.forEach(card => {
         const idx = parseInt(card.dataset.index);
-        if (Number.isNaN(idx)) {
+        if (Number.isNaN(idx) || idx < 0 || idx >= tracks.length) {
             card.style.display = 'none';
+            card.classList.add('hidden');
             return;
         }
         const t = tracks[idx];
         if (!t) {
             card.style.display = 'none';
+            card.classList.add('hidden');
             return;
         }
         
         // 确保 card 的 genre 属性与 track 的 genre 一致
-        const cardGenre = card.dataset.genre || t.genre;
-        if (card.dataset.genre !== t.genre) {
-            card.dataset.genre = t.genre;
+        const trackGenre = t.genre || 'for_you';
+        if (card.dataset.genre !== trackGenre) {
+            card.dataset.genre = trackGenre;
         }
         
-        // 检查流派过滤
-        const passGenre = (genreFilter === 'all' || cardGenre === genreFilter);
+        // 检查流派过滤（使用 track 的 genre，确保准确性）
+        const passGenre = (genreFilter === 'all' || trackGenre === genreFilter);
         // 检查搜索过滤
         const hay = `${t?.title || ''} ${t?.artist || ''}`.toLowerCase();
         const matchSearch = q === '' || hay.includes(q);
@@ -1349,11 +1355,17 @@ function applyGenreFilterAndSearch() {
         if (passGenre && matchSearch) {
             card.style.display = '';
             card.classList.remove('hidden');
+            visibleCount++;
         } else {
             card.style.display = 'none';
             card.classList.add('hidden');
         }
     });
+    
+    // 调试信息（仅在开发时使用）
+    if (visibleCount === 0 && cards.length > 0) {
+        console.log('No cards visible. Filter:', genreFilter, 'Search:', q, 'Total tracks:', tracks.length);
+    }
 }
 // ================= GitHub-only 上传/编辑（不做本地持久化） =================
 const GH_OWNER = 'Miao8-11';
@@ -1370,11 +1382,18 @@ async function refreshTracksFromGitHub() {
         // 重新初始化 tracks，只保留内置曲库
         tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }));
         
-        // 从 GitHub 获取最新的用户歌曲列表
+        // 从 GitHub 获取最新的用户歌曲列表（带重试机制）
         const userTracks = await getUserTracksFromGitHubRaw();
-        if (Array.isArray(userTracks)) {
+        if (Array.isArray(userTracks) && userTracks.length > 0) {
             userTracks.forEach(entry => {
                 // entry: { title, artist, genre, coverPath, musicPath, createdAt }
+                // 跳过 ethereal 相关歌曲
+                const title = (entry.title || '').toLowerCase();
+                if (title.includes('ethereal')) {
+                    console.log('Skipping ethereal song:', entry.title);
+                    return;
+                }
+                
                 const tr = {
                     id: `gh-${entry.createdAt || Date.now()}-${Math.random().toString(36).slice(2,8)}`,
                     title: entry.title || 'Untitled',
@@ -1387,7 +1406,7 @@ async function refreshTracksFromGitHub() {
                     musicPathRel: entry.musicPath || ''
                 };
                 // 基础校验：确保有文件链接
-                if (tr.file) {
+                if (tr.file && tr.cover) {
                     tracks.push(tr);
                 }
             });
@@ -1425,36 +1444,69 @@ if (addBtn) {
             alert('Please fill in all required fields and provide a GitHub token.');
             return;
         }
+        
+        // 显示加载状态
+        const originalBtnText = addBtn.textContent;
+        addBtn.textContent = 'Uploading...';
+        addBtn.disabled = true;
+        
         try {
+            // 步骤1: 上传文件到 GitHub
             const nextCoverPath = await computeNextCoverPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, coverFile.name);
             await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, nextCoverPath, coverFile, `Add cover ${nextCoverPath}`);
             const musicPath = await computeMusicPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, audioFile.name);
             await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, musicPath, audioFile, `Add audio ${musicPath}`);
-            // 写入/更新仓库中的 user-tracks.json 元数据
+            
+            // 步骤2: 准备新歌数据
+            const createdAt = Date.now();
             const newEntry = {
                 title,
                 artist,
                 genre,
                 coverPath: nextCoverPath,
                 musicPath,
-                createdAt: Date.now()
+                createdAt
             };
-            await upsertUserTracksJson(ghToken, newEntry);
-            // 等待一小段时间，确保 GitHub API 完成更新
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // 重新从 GitHub 获取最新列表，确保数据同步
-            await refreshTracksFromGitHub();
+            
+            // 步骤3: 立即添加到本地 tracks 数组并显示（不等待 GitHub JSON 更新）
+            const newTrack = {
+                id: `gh-${createdAt}-${Math.random().toString(36).slice(2,8)}`,
+                title,
+                artist,
+                genre,
+                cover: RAW_BASE + nextCoverPath,
+                file: RAW_BASE + musicPath,
+                isUser: true,
+                coverPathRel: nextCoverPath,
+                musicPathRel: musicPath
+            };
+            tracks.push(newTrack);
+            // 立即重新渲染，确保新歌显示
+            loadMusic();
+            
+            // 步骤4: 异步更新 user-tracks.json（后台进行，不影响显示）
+            upsertUserTracksJson(ghToken, newEntry).then(() => {
+                console.log('User tracks JSON updated successfully');
+            }).catch(err => {
+                console.warn('Failed to update user-tracks.json (song is already displayed):', err);
+            });
+            
+            // 清空表单
+            if (inAudio) inAudio.value = '';
+            if (inCover) inCover.value = '';
+            if (inTitle) inTitle.value = '';
+            if (inArtist) inArtist.value = '';
+            if (inGenre) inGenre.value = 'for_you';
+            
+            alert('Uploaded successfully! Song added to the list.');
         } catch (e) {
             console.error('GitHub upload failed', e);
-            alert('GitHub upload failed. Check console for details.');
-            return;
+            alert('GitHub upload failed: ' + (e.message || 'Unknown error') + '\nCheck console for details.');
+        } finally {
+            // 恢复按钮状态
+            addBtn.textContent = originalBtnText;
+            addBtn.disabled = false;
         }
-        if (inAudio) inAudio.value = '';
-        if (inCover) inCover.value = '';
-        if (inTitle) inTitle.value = '';
-        if (inArtist) inArtist.value = '';
-        if (inGenre) inGenre.value = 'for_you';
-        alert('Uploaded to GitHub and added to the list.');
     });
 }
 
@@ -1528,6 +1580,7 @@ if (editSaveBtn) {
                 updatedFile = RAW_BASE + musicPath;
                 musicRel = musicPath;
             }
+            // 立即更新本地 tracks 数组
             tracks[editingIndex] = {
                 ...t,
                 title: newTitle,
@@ -1538,25 +1591,29 @@ if (editSaveBtn) {
                 coverPathRel: coverRel,
                 musicPathRel: musicRel
             };
-            await upsertUserTracksJson(ghToken, {
+            // 立即重新渲染
+            loadMusic();
+            
+            // 异步更新 user-tracks.json（后台进行）
+            upsertUserTracksJson(ghToken, {
                 title: newTitle,
                 artist: newArtist,
                 genre: newGenre,
                 coverPath: coverRel,
                 musicPath: musicRel,
-                createdAt: Date.now()
+                createdAt: t.id ? (parseInt(t.id.split('-')[1]) || Date.now()) : Date.now()
+            }).then(() => {
+                console.log('User tracks JSON updated successfully');
+            }).catch(err => {
+                console.warn('Failed to update user-tracks.json (changes are already displayed):', err);
             });
-            // 等待一小段时间，确保 GitHub API 完成更新
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // 重新从 GitHub 获取最新列表，确保数据同步
-            await refreshTracksFromGitHub();
         } catch (e) {
             console.error('GitHub upload failed', e);
-            alert('GitHub upload failed. Check console for details.');
+            alert('GitHub upload failed: ' + (e.message || 'Unknown error') + '\nCheck console for details.');
             return;
         }
         closeEditModal();
-        alert('Saved (files uploaded if provided).');
+        alert('Saved successfully! Changes applied.');
     });
 }
 if (editDeleteBtn) {
@@ -1583,16 +1640,24 @@ if (editDeleteBtn) {
             if (coverRel) {
                 await githubDeleteFile(token, GH_OWNER, GH_REPO, GH_BRANCH, coverRel, `Delete ${coverRel}`);
             }
-            // 从索引文件移除
-            if (audioRel) {
-                await removeFromUserTracksJson(token, audioRel, coverRel);
+            // 立即从本地 tracks 数组移除
+            if (editingIndex >= 0 && editingIndex < tracks.length) {
+                tracks.splice(editingIndex, 1);
             }
-            // 等待一小段时间，确保 GitHub API 完成更新
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // 重新从 GitHub 获取最新列表，避免缓存问题
-            await refreshTracksFromGitHub();
+            // 立即重新渲染
+            loadMusic();
+            
+            // 异步从 GitHub 删除（后台进行）
+            if (audioRel) {
+                removeFromUserTracksJson(token, audioRel, coverRel).then(() => {
+                    console.log('User tracks JSON updated successfully');
+                }).catch(err => {
+                    console.warn('Failed to remove from user-tracks.json (song is already removed from display):', err);
+                });
+            }
+            
             closeEditModal();
-            alert('Deleted from GitHub and removed from page.');
+            alert('Deleted successfully! Song removed from the list.');
         } catch (e) {
             console.error('GitHub delete failed', e);
             alert('GitHub delete failed. Check console for details.');
@@ -1721,24 +1786,40 @@ function getNextLocalTrackIndex() {
 }
 
 // 读取 RAW JSON（无需 token）
-async function getUserTracksFromGitHubRaw() {
+async function getUserTracksFromGitHubRaw(retryCount = 0) {
     try {
         // 添加时间戳参数强制刷新，避免浏览器/CDN缓存
         const timestamp = Date.now();
-        const url = `${RAW_BASE}${DATA_JSON_PATH}?t=${timestamp}`;
+        const url = `${RAW_BASE}${DATA_JSON_PATH}?t=${timestamp}&_=${Date.now()}`;
         const res = await fetch(url, { 
             cache: 'no-store',
             headers: {
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache'
+                'Pragma': 'no-cache',
+                'Expires': '0'
             }
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+            if (res.status === 404) return []; // 文件不存在，返回空数组
+            throw new Error(`HTTP ${res.status}`);
+        }
         const json = await res.json();
-        if (Array.isArray(json)) return json;
+        if (Array.isArray(json)) {
+            // 过滤掉可能的 ethereal 歌曲
+            return json.filter(entry => {
+                const title = (entry.title || '').toLowerCase();
+                return !title.includes('ethereal');
+            });
+        }
         return [];
     } catch (e) {
+        // 如果失败且还有重试次数，等待后重试
+        if (retryCount < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+            return getUserTracksFromGitHubRaw(retryCount + 1);
+        }
         // 不存在或解析失败
+        console.warn('Failed to fetch user-tracks.json:', e?.message || e);
         return [];
     }
 }
@@ -1778,7 +1859,19 @@ async function upsertUserTracksJson(token, newEntry) {
     const normalizedMusicPath = newEntry.musicPath || '';
     if (!normalizedMusicPath) return; // 没有明确音频路径则跳过写入
     const normalizedCoverPath = newEntry.coverPath || '';
-    list = list.filter(item => item && item.musicPath !== normalizedMusicPath);
+    // 过滤掉已存在的相同路径，同时过滤掉 ethereal 相关歌曲
+    list = list.filter(item => {
+        if (!item) return false;
+        // 移除相同路径的旧记录
+        if (item.musicPath === normalizedMusicPath) return false;
+        // 移除 ethereal 相关歌曲
+        const title = (item.title || '').toLowerCase();
+        if (title.includes('ethereal')) {
+            console.log('Removing ethereal song from JSON:', item.title);
+            return false;
+        }
+        return true;
+    });
     list.push({
         title: newEntry.title || 'Untitled',
         artist: newEntry.artist || 'Unknown',
@@ -1834,8 +1927,20 @@ async function removeFromUserTracksJson(token, musicPathRel, coverPathRel = '') 
         const parsed = JSON.parse(contentStr);
         if (Array.isArray(parsed)) list = parsed;
     } catch {}
-    const filtered = list.filter(x => x && x.musicPath !== musicPathRel && x.coverPath !== coverPathRel);
-    if (filtered.length === list.length) return;
+    // 过滤掉要删除的歌曲，同时过滤掉 ethereal 相关歌曲
+    const filtered = list.filter(x => {
+        if (!x) return false;
+        // 删除匹配的歌曲
+        if (x.musicPath === musicPathRel || x.coverPath === coverPathRel) return false;
+        // 删除 ethereal 相关歌曲
+        const title = (x.title || '').toLowerCase();
+        if (title.includes('ethereal')) {
+            console.log('Removing ethereal song from JSON:', x.title);
+            return false;
+        }
+        return true;
+    });
+    if (filtered.length === list.length) return; // 没有变化
     const bodyStr = JSON.stringify(filtered, null, 2);
     const blob = new Blob([bodyStr], { type: 'application/json' });
     const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(DATA_JSON_PATH)}`;
