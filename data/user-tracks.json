@@ -6,5 +6,13 @@
     "coverPath": "images/cover34.jpg",
     "musicPath": "music/Punch_Deck_-_Ethereal.mp3",
     "createdAt": 1762874103357
+  },
+  {
+    "title": "In your pocket",
+    "artist": "Ricky Montgomery",
+    "genre": "rock",
+    "coverPath": "images/cover35.jpg",
+    "musicPath": "music/track34.mp3",
+    "createdAt": 1762924249952
   }
 ]
