@@ -872,9 +872,13 @@ function loadMusic() {
         });
     });
 
-    if (typeof applyGenreFilterAndSearch === 'function') {
-        applyGenreFilterAndSearch();
-    }
+    // 强制重新应用过滤和搜索，确保新添加的歌曲正确显示
+    // 使用 setTimeout 确保 DOM 完全渲染后再应用过滤
+    setTimeout(() => {
+        if (typeof applyGenreFilterAndSearch === 'function') {
+            applyGenreFilterAndSearch();
+        }
+    }, 0);
 }
 
 function initAudioPlayer(card, track) {
@@ -1317,6 +1321,7 @@ function applyGenreFilterAndSearch() {
     const genreFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
     const q = musicSearch?.value.trim().toLowerCase() || '';
     const cards = document.querySelectorAll('.music-card');
+    
     cards.forEach(card => {
         const idx = parseInt(card.dataset.index);
         if (Number.isNaN(idx)) {
@@ -1328,13 +1333,25 @@ function applyGenreFilterAndSearch() {
             card.style.display = 'none';
             return;
         }
-        const passGenre = (genreFilter === 'all' || card.dataset.genre === genreFilter);
+        
+        // 确保 card 的 genre 属性与 track 的 genre 一致
+        const cardGenre = card.dataset.genre || t.genre;
+        if (card.dataset.genre !== t.genre) {
+            card.dataset.genre = t.genre;
+        }
+        
+        // 检查流派过滤
+        const passGenre = (genreFilter === 'all' || cardGenre === genreFilter);
+        // 检查搜索过滤
         const hay = `${t?.title || ''} ${t?.artist || ''}`.toLowerCase();
         const matchSearch = q === '' || hay.includes(q);
+        
         if (passGenre && matchSearch) {
             card.style.display = '';
+            card.classList.remove('hidden');
         } else {
             card.style.display = 'none';
+            card.classList.add('hidden');
         }
     });
 }
@@ -1347,9 +1364,13 @@ const DATA_JSON_PATH = 'data/user-tracks.json';
 // 初始化仅用内置曲库
 tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }));
 
-// 启动时尝试从 GitHub 读取已上传的用户歌曲元数据并合并
-(async function bootstrapTracksFromGitHub() {
+// 从 GitHub 刷新用户上传的歌曲列表
+async function refreshTracksFromGitHub() {
     try {
+        // 重新初始化 tracks，只保留内置曲库
+        tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }));
+        
+        // 从 GitHub 获取最新的用户歌曲列表
         const userTracks = await getUserTracksFromGitHubRaw();
         if (Array.isArray(userTracks)) {
             userTracks.forEach(entry => {
@@ -1377,6 +1398,11 @@ tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }))
     } finally {
         loadMusic();
     }
+}
+
+// 启动时尝试从 GitHub 读取已上传的用户歌曲元数据并合并
+(async function bootstrapTracksFromGitHub() {
+    await refreshTracksFromGitHub();
 })();
 
 // 上传表单
@@ -1414,19 +1440,10 @@ if (addBtn) {
                 createdAt: Date.now()
             };
             await upsertUserTracksJson(ghToken, newEntry);
-            const newTrack = {
-                id: `gh-${Date.now()}`,
-                title,
-                artist,
-                genre,
-                cover: RAW_BASE + nextCoverPath,
-                file: RAW_BASE + musicPath,
-                isUser: true,
-                coverPathRel: nextCoverPath,
-                musicPathRel: musicPath
-            };
-            tracks.push(newTrack);
-            loadMusic();
+            // 等待一小段时间，确保 GitHub API 完成更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // 重新从 GitHub 获取最新列表，确保数据同步
+            await refreshTracksFromGitHub();
         } catch (e) {
             console.error('GitHub upload failed', e);
             alert('GitHub upload failed. Check console for details.');
@@ -1529,7 +1546,10 @@ if (editSaveBtn) {
                 musicPath: musicRel,
                 createdAt: Date.now()
             });
-            loadMusic();
+            // 等待一小段时间，确保 GitHub API 完成更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // 重新从 GitHub 获取最新列表，确保数据同步
+            await refreshTracksFromGitHub();
         } catch (e) {
             console.error('GitHub upload failed', e);
             alert('GitHub upload failed. Check console for details.');
@@ -1567,9 +1587,10 @@ if (editDeleteBtn) {
             if (audioRel) {
                 await removeFromUserTracksJson(token, audioRel, coverRel);
             }
-            // 从当前页面移除
-            tracks.splice(editingIndex, 1);
-            loadMusic();
+            // 等待一小段时间，确保 GitHub API 完成更新
+            await new Promise(resolve => setTimeout(resolve, 500));
+            // 重新从 GitHub 获取最新列表，避免缓存问题
+            await refreshTracksFromGitHub();
             closeEditModal();
             alert('Deleted from GitHub and removed from page.');
         } catch (e) {
@@ -1702,7 +1723,16 @@ function getNextLocalTrackIndex() {
 // 读取 RAW JSON（无需 token）
 async function getUserTracksFromGitHubRaw() {
     try {
-        const res = await fetch(RAW_BASE + DATA_JSON_PATH, { cache: 'no-store' });
+        // 添加时间戳参数强制刷新，避免浏览器/CDN缓存
+        const timestamp = Date.now();
+        const url = `${RAW_BASE}${DATA_JSON_PATH}?t=${timestamp}`;
+        const res = await fetch(url, { 
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (Array.isArray(json)) return json;
