@@ -138,62 +138,17 @@
                     <button class="filter-btn" data-filter="rock">Rock</button>
                     <button class="filter-btn" data-filter="ambient">Ambient</button>
                 </div>
-                <div class="search-bar">
-                    <div class="search-bar__inner glass-container">
-                        <div class="glass-filter"></div>
-                        <div class="glass-overlay"></div>
-                        <div class="glass-specular"></div>
-                        <div class="glass-content search-content">
-                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="7"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                            <input id="musicSearch" type="text" class="search-input" placeholder="Search by title or artist">
-                            <button id="musicSearchClear" class="search-clear" title="Clear">×</button>
-                        </div>
+                
+                <div class="search-container">
+                    <div class="search-bar">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input id="musicSearch" type="text" class="search-input" placeholder="Search by title or artist">
+                        <button id="musicSearchClear" class="search-clear" title="Clear" style="display: none;">×</button>
                     </div>
                 </div>
-                
-                <!-- Temporary: Upload/Edit Tracks panel (GitHub only, will be removed later) -->
-                <details id="uploadPanel" class="admin-panel">
-                    <summary>Temporary Upload/Edit Tracks (GitHub only)</summary>
-                    <div class="admin-panel__form">
-                        <div class="form-row">
-                            <label>Audio file</label>
-                            <input type="file" id="uploadAudioInput" accept="audio/*" required>
-                        </div>
-                        <div class="form-row">
-                            <label>Cover image</label>
-                            <input type="file" id="uploadCoverInput" accept="image/*" required>
-                        </div>
-                        <div class="form-row">
-                            <label>Title</label>
-                            <input type="text" id="uploadTitleInput" placeholder="Enter title" required>
-                        </div>
-                        <div class="form-row">
-                            <label>Artist</label>
-                            <input type="text" id="uploadArtistInput" placeholder="Enter artist" required>
-                        </div>
-                        <div class="form-row">
-                            <label>Genre</label>
-                            <select id="uploadGenreSelect" required>
-                                <option value="for_you">For You</option>
-                                <option value="electronic">Electronic</option>
-                                <option value="rock">Rock</option>
-                                <option value="ambient">Ambient</option>
-                            </select>
-                        </div>
-                        <div class="form-row">
-                            <label>GitHub Token (required)</label>
-                            <input type="password" id="ghToken" placeholder="Fine-grained token with repo contents write" required>
-                            <p class="hint">Repo fixed to https://github.com/Miao8-11/miao.github.io (branch: main)</p>
-                        </div>
-                        <div class="form-actions">
-                            <button id="addTrackBtn" type="button">Upload to GitHub</button>
-                            <span class="hint">Uploads cover to images/coverN.ext and audio to music/xxx.mp3</span>
-                        </div>
-                    </div>
-                </details>
                 
                 <div class="music-grid" id="musicGrid"></div>
             </div>
@@ -203,7 +158,35 @@
         <section class="section" data-section="2">
             <div class="content">
                 <h2 class="section-title">Photos</h2>
-                <div class="photos-grid" id="photosGrid"></div>
+                <div class="photo-album" id="photoAlbum">
+                    <div class="album-hotspot album-hotspot--left" data-direction="prev" aria-label="上一页"></div>
+                    <div class="album-hotspot album-hotspot--right" data-direction="next" aria-label="下一页"></div>
+                    <div class="album-book" id="albumBook">
+                        <div class="album-binding"></div>
+                        <div class="album-page album-page--current" id="albumCurrentPage"></div>
+                        <div class="album-page album-page--flip" id="albumFlipPage" aria-hidden="true"></div>
+                    </div>
+                    <svg class="album-filters" aria-hidden="true">
+                        <defs>
+                            <filter id="album-wavy-1">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" result="noise"/>
+                                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/>
+                            </filter>
+                            <filter id="album-wavy-2">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="12" result="noise"/>
+                                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4"/>
+                            </filter>
+                            <filter id="album-wavy-3">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" seed="28" result="noise"/>
+                                <feDisplacementMap in="SourceGraphic" in2="noise" scale="5"/>
+                            </filter>
+                        </defs>
+                    </svg>
+                    <div class="album-footer">
+                        <div class="album-page-indicator" id="albumPageIndicator"></div>
+                        <div class="album-tip">点击左页返回 · 点击右页前进</div>
+                    </div>
+                </div>
             </div>
         </section>
         
@@ -241,51 +224,6 @@
         </div>
     </div>
     
-    <!-- Edit Track Modal (temporary) -->
-    <div class="modal" id="editModal" style="display: none;">
-        <div class="modal__dialog">
-            <div class="modal__header">
-                <h3>Edit Track</h3>
-                <button class="modal__close" id="editCloseBtn" title="Close">×</button>
-            </div>
-            <div class="modal__body">
-                <div class="form-row">
-                    <label>Title</label>
-                    <input type="text" id="editTitleInput">
-                </div>
-                <div class="form-row">
-                    <label>Artist</label>
-                    <input type="text" id="editArtistInput">
-                </div>
-                <div class="form-row">
-                    <label>Genre</label>
-                    <select id="editGenreSelect">
-                        <option value="for_you">For You</option>
-                        <option value="electronic">Electronic</option>
-                        <option value="rock">Rock</option>
-                        <option value="ambient">Ambient</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label>Replace audio (optional)</label>
-                    <input type="file" id="editAudioInput" accept="audio/*">
-                </div>
-                <div class="form-row">
-                    <label>Replace cover (optional)</label>
-                    <input type="file" id="editCoverInput" accept="image/*">
-                </div>
-                <div class="form-row">
-                    <label>GitHub Token (required)</label>
-                    <input type="password" id="ghTokenEdit" placeholder="Fine-grained token with repo contents write" required>
-                    <p class="hint">Repo fixed to https://github.com/Miao8-11/miao.github.io (branch: main)</p>
-                </div>
-            </div>
-            <div class="modal__footer">
-                <button id="editSaveBtn">Save</button>
-                <button id="editDeleteBtn" class="danger">Delete from GitHub</button>
-            </div>
-        </div>
-    </div>
     
     <script src="script.js"></script>
 </body>

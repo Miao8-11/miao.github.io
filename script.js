@@ -1,18 +1,18 @@
 // ==========================================
-// ENTRANCE ANIMATION
+// ENTRANCE ANIMATION - 进入动画控制
 // ==========================================
 const entranceOverlay = document.getElementById('entranceOverlay');
 const body = document.body;
 
-// Add class immediately on page load to hide website content (prevent flash)
-// body tag already has entrance-active class in HTML
-// Ensure overlay exists
+// 页面加载时立即添加类名以隐藏网站内容（防止闪现）
+// body标签在HTML中已经添加了entrance-active类
+// 这里确保覆盖层存在
 if (!entranceOverlay) {
-    // If overlay doesn't exist, keep UI elements hidden
+    // 如果覆盖层不存在，确保界面元素保持隐藏
     body.classList.add('entrance-active');
 }
 
-// After page load, delay removing entrance animation overlay and trigger staged fade-in
+// 页面加载完成后，延迟移除进入动画覆盖层并触发分阶段淡入
 window.addEventListener('load', () => {
     setTimeout(() => {
         if (entranceOverlay) {
@@ -20,41 +20,41 @@ window.addEventListener('load', () => {
             entranceOverlay.style.visibility = 'hidden';
             entranceOverlay.style.opacity = '0';
             body.classList.remove('entrance-active');
-            body.classList.add('page-ready'); // Add class to trigger staged fade-in animation
-            body.classList.add('background-visible'); // Ensure background image displays
+            body.classList.add('page-ready'); // 添加类名以触发分阶段淡入动画
+            body.classList.add('background-visible'); // 确保背景图显示
         }
-    }, 2000); // Match animation duration (2 seconds)
+    }, 2000); // 与动画时长一致（2秒）
 });
 
 // ==========================================
-// THEME SWITCHER - 2 themes
+// THEME SWITCHER - 2个主题切换
 // ==========================================
 const themeToggle = document.getElementById('themeToggle');
 
-// Theme list: Vibrant (default) and Pastel
+// 主题列表：Vibrant (默认) 和 Pastel
 const themes = ['vibrant', 'pastel'];
 let currentThemeIndex = 0;
 
-// Load theme from localStorage
+// 从 localStorage 加载主题
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'pastel') {
     body.classList.add('theme-pastel');
     currentThemeIndex = 1;
 }
 
-// Switch theme - cycle between 2 themes
+// 切换主题 - 2个主题循环
 themeToggle.addEventListener('click', (e) => {
     e.preventDefault();
     
-    // Switch to next theme
+    // 切换到下一个主题
     currentThemeIndex = (currentThemeIndex + 1) % 2;
     
     if (currentThemeIndex === 1) {
-        // Switch to Pastel
+        // 切换到 Pastel
         body.classList.add('theme-pastel');
         localStorage.setItem('theme', 'pastel');
     } else {
-        // Switch back to Vibrant (default)
+        // 切换回 Vibrant (默认)
         body.classList.remove('theme-pastel');
         localStorage.setItem('theme', 'vibrant');
     }
@@ -83,7 +83,7 @@ class FullPageScroll {
             this.bottomNavBtn.addEventListener('click', () => this.next());
         }
         
-        // Monitor scroll to show/hide bottom button - throttled
+        // Monitor scroll to show/hide bottom button - 节流处理
         let scrollTimeout = null;
         this.sections.forEach(section => {
             section.addEventListener('scroll', () => {
@@ -91,7 +91,7 @@ class FullPageScroll {
                 scrollTimeout = setTimeout(() => {
                     this.checkBottomNav();
                     scrollTimeout = null;
-                }, 100); // Execute at most once per 100ms
+                }, 100); // 每100ms最多执行一次
             }, { passive: true });
         });
         
@@ -114,7 +114,7 @@ class FullPageScroll {
             });
         });
         
-        // Touch events - improved mobile scroll detection
+        // Touch events - 改进移动端滚动检测
         let touchStart = 0;
         let touchStartTime = 0;
         
@@ -124,7 +124,7 @@ class FullPageScroll {
         });
         
         window.addEventListener('touchmove', (e) => {
-            // Allow scrolling inside section
+            // 允许section内部滚动
             const activeSection = this.sections[this.current];
             const touchCurrent = e.touches[0].clientY;
             const diff = touchStart - touchCurrent;
@@ -132,9 +132,9 @@ class FullPageScroll {
             const atTop = activeSection.scrollTop === 0;
             const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
             
-            // Only prevent default behavior at boundaries
+            // 只在边界时阻止默认行为
             if ((diff > 0 && atBottom) || (diff < 0 && atTop)) {
-                // Don't prevent, let touchend handle it
+                // 不阻止，让touchend处理
             }
         });
         
@@ -149,14 +149,14 @@ class FullPageScroll {
             const atTop = activeSection.scrollTop === 0;
             const atBottom = activeSection.scrollHeight - activeSection.scrollTop <= activeSection.clientHeight + 10;
             
-            // Swipe threshold and time detection
+            // 滑动阈值和时间检测
             if (Math.abs(diff) > 80 && touchDuration < 400) {
                 if (diff < 0 && atTop && this.current > 0) {
-                    // Swipe down (switch to previous section)
+                    // 向下拉（切换到上一个section）
                     e.preventDefault();
                     this.prev();
                 }
-                // Swipe up doesn't auto-switch, need to click bottom button
+                // 向上拉不自动切换，需要点击底部按钮
             }
         });
     }
@@ -181,13 +181,13 @@ class FullPageScroll {
         const activeSection = this.sections[this.current];
         const atTop = activeSection.scrollTop === 0;
         
-        // Only auto-switch to previous section when scrolling up to top
+        // 只在向上滚动到顶部时自动切换到上一个section
         if (e.deltaY < 0 && atTop) {
             e.preventDefault();
             this.prev();
         }
         
-        // Scrolling down doesn't auto-switch, need to click bottom button
+        // 向下滚动不自动切换，需要点击底部按钮
     }
     
     handleKeyboard(e) {
@@ -338,7 +338,7 @@ const musicTracks = [
     { title: 'Hey lover', artist: 'The Daughters of Eve', genre: 'for_you', file: 'music/track33.mp3', cover: 'images/cover33.jpg' }
 ];
 
-// Runtime track library (default + user uploads/overrides)
+// 运行时曲库（默认 + 本地上传/覆盖）
 let tracks = [];
 
 // Current playing audio
@@ -346,48 +346,48 @@ let currentAudio = null;
 let currentPlayingCard = null;
 const nowPlayingBar = document.getElementById('nowPlaying');
 const navEl = document.querySelector('.nav');
-// Global audio objects array to prevent multiple tracks playing simultaneously
+// 全局音频对象数组，用于防止多首歌同时播放
 const allAudioObjects = [];
 
-// Playback modes: 'single' (single repeat), 'shuffle' (shuffle), 'sequential' (sequential)
+// Playback modes: 'single' (单曲重播), 'shuffle' (随机播放), 'sequential' (顺序播放)
 let playbackMode = 'sequential';
-// Global button click sound effect & old radio sound effect
+// 全局按钮点击音效 & 老收音机音效
 const buttonClickSfx = new Audio('button_sound/button-click.mp3');
 buttonClickSfx.volume = 0.35;
 const radioClickSfx = new Audio('button_sound/old-radio-button-click.mp3');
 radioClickSfx.volume = 0.6;
-let nextPlayShouldRadioClick = true; // Play old radio sound effect before first manual play
+let nextPlayShouldRadioClick = true; // 首次手动播放前先播 old radio 音效
 let isAutoAdvance = false;
 let isRadioSfxPlaying = false;
-let bongoShown = false; // One-time trigger flag
-let pendingRadioAudio = null; // Audio object waiting for radio sound effect to finish
+let bongoShown = false; // 仅触发一次的提示
+let pendingRadioAudio = null; // 正在等待radio音效播放完成的音频对象
 
 // ===================== Mobile Lock Screen / Media Session =====================
 let mediaSessionHandlersSet = false;
 
-// ===================== Scrolling Text Function =====================
+// ===================== 文字滚动功能 =====================
 function setupScrollingText(scrollElement, wrapperElement) {
     if (!scrollElement || !wrapperElement) return;
     
-    // Wait for DOM rendering to complete
+    // 等待DOM渲染完成
     setTimeout(() => {
         const wrapperWidth = wrapperElement.offsetWidth;
         const scrollWidth = scrollElement.scrollWidth;
         
         if (scrollWidth > wrapperWidth) {
-            // Text overflow, enable scrolling
+            // 文字溢出，启用滚动
             const overflow = scrollWidth - wrapperWidth;
-            const duration = scrollElement.classList.contains('player__legend__title-scroll') ? 15 : 12; // Player 15s, track list 12s
-            const pauseTime = 2; // Pause time at start and end (seconds)
+            const duration = scrollElement.classList.contains('player__legend__title-scroll') ? 15 : 12; // 播放器15秒，歌曲列表12秒
+            const pauseTime = 2; // 开始和结束的暂停时间（秒）
             
-            // Calculate scroll distance
-            const scrollDistance = overflow + 20; // Scroll a bit more to ensure complete display
+            // 计算滚动距离
+            const scrollDistance = overflow + 20; // 多滚动一点确保完全显示
             
-            // Set CSS variables to dynamically control scroll distance
+            // 设置CSS变量来动态控制滚动距离
             scrollElement.style.setProperty('--scroll-distance', `-${scrollDistance}px`);
             scrollElement.style.setProperty('--scroll-duration', `${duration}s`);
             
-            // Determine animation name
+            // 确定动画名称
             let animationName = 'scrollText';
             if (scrollElement.classList.contains('track-title-scroll')) {
                 animationName = 'scrollTextTrack';
@@ -395,7 +395,7 @@ function setupScrollingText(scrollElement, wrapperElement) {
                 animationName = 'scrollTextArtist';
             }
             
-            // Update animation keyframes (use unique ID to avoid conflicts)
+            // 更新动画关键帧（使用唯一ID避免冲突）
             const styleId = `dynamic-scroll-${animationName}`;
             let style = document.getElementById(styleId);
             if (!style) {
@@ -416,7 +416,7 @@ function setupScrollingText(scrollElement, wrapperElement) {
                 }
             `;
             
-            // Set animation name
+            // 设置动画名称
             scrollElement.style.animationName = animationName;
             scrollElement.classList.add('scrolling');
         } else {
@@ -511,26 +511,26 @@ function showNowPlaying(track, coverUrl, isPlaying) {
                     <p class="player__legend__sub-title"></p>
                 </div>
                 <div class="player__controls">
-                    <button class="np-btn np-mode" title="Playback Mode: ${playbackMode === 'single' ? 'Single Repeat' : playbackMode === 'shuffle' ? 'Shuffle' : 'Sequential'}">${modeIcons[playbackMode]}</button>
+                    <button class="np-btn np-mode" title="播放模式: ${playbackMode === 'single' ? '单曲重播' : playbackMode === 'shuffle' ? '随机播放' : '顺序播放'}">${modeIcons[playbackMode]}</button>
                     <button class="np-btn np-toggle" title="${isPlaying ? 'Pause' : 'Play'}">${isPlaying ? '❚❚' : '▶'}</button>
                 </div>
             </div>
         </div>
     `;
-    // Setup scrolling animation
+    // 设置滚动动画
     setupScrollingText(nowPlayingBar.querySelector('.player__legend__title-scroll'), nowPlayingBar.querySelector('.player__legend__title-scroll-wrapper'));
-    // Reset animation state to ensure fade-in triggers each time
+    // 重置动画状态，确保每次显示都能触发淡入
     nowPlayingBar.style.animation = 'none';
     nowPlayingBar.style.display = 'flex';
     setNowPlayingTop();
-    // Force reflow, then reapply animation
+    // 强制重排，然后重新应用动画
     void nowPlayingBar.offsetWidth;
     nowPlayingBar.style.animation = '';
 
     const toggleBtn = nowPlayingBar.querySelector('.np-toggle');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', (e) => {
-            // This button doesn't play button-click sound effect
+            // 这个按钮不播放 button-click 音效
             e.stopPropagation();
             if (currentAudio) {
                 if (currentAudio.paused) {
@@ -549,7 +549,7 @@ function showNowPlaying(track, coverUrl, isPlaying) {
     const modeBtn = nowPlayingBar.querySelector('.np-mode');
     if (modeBtn) {
         modeBtn.addEventListener('click', () => {
-            // Cycle through modes: sequential -> shuffle -> single -> sequential
+            // 循环切换模式: sequential -> shuffle -> single -> sequential
             if (playbackMode === 'sequential') {
                 playbackMode = 'shuffle';
             } else if (playbackMode === 'shuffle') {
@@ -558,17 +558,17 @@ function showNowPlaying(track, coverUrl, isPlaying) {
                 playbackMode = 'sequential';
             }
             modeBtn.textContent = modeIcons[playbackMode];
-            modeBtn.title = `Playback Mode: ${playbackMode === 'single' ? 'Single Repeat' : playbackMode === 'shuffle' ? 'Shuffle' : 'Sequential'}`;
+            modeBtn.title = `播放模式: ${playbackMode === 'single' ? '单曲重播' : playbackMode === 'shuffle' ? '随机播放' : '顺序播放'}`;
             
-            // Show mode toast
+            // 显示模式提示
             showModeToast(playbackMode);
         });
     }
 }
 
-// Show playback mode toast (fade out effect)
+// 显示播放模式提示（英文，淡出效果）
 function showModeToast(mode) {
-    // Remove existing toast
+    // 移除已存在的提示
     const existingToast = document.querySelector('.mode-toast');
     if (existingToast) {
         existingToast.remove();
@@ -585,12 +585,12 @@ function showModeToast(mode) {
     toast.textContent = modeTexts[mode] || mode;
     document.body.appendChild(toast);
     
-    // Trigger show animation
+    // 触发显示动画
     setTimeout(() => {
         toast.classList.add('show');
     }, 10);
     
-    // Remove after animation ends
+    // 动画结束后移除
     setTimeout(() => {
         toast.remove();
     }, 2100);
@@ -853,33 +853,12 @@ function loadMusic() {
                             <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
                         </svg>
                     </button>
-                    <button class="control-btn edit-btn" title="编辑此歌曲">✎</button>
                 </div>
             </div>
         `;
         
         grid.appendChild(card);
         initAudioPlayer(card, track);
-    });
-    
-    document.querySelectorAll('.music-card .edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const card = btn.closest('.music-card');
-            const idx = Number(card?.dataset.index || -1);
-            if (idx < 0) return;
-            openEditModal(idx);
-        });
-    });
-
-    // 强制重新应用过滤和搜索，确保新添加的歌曲正确显示
-    // 使用 requestAnimationFrame 确保 DOM 完全渲染后再应用过滤
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            if (typeof applyGenreFilterAndSearch === 'function') {
-                applyGenreFilterAndSearch();
-            }
-        });
     });
 }
 
@@ -1230,7 +1209,7 @@ function initAudioPlayer(card, track) {
             // 顺序播放：按列表顺序找下一首
             const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
             const visibleCards = Array.from(document.querySelectorAll('.music-card'))
-                .filter(c => c.style.display !== 'none')
+                .filter(c => !c.classList.contains('hidden'))
                 .map(c => ({ card: c, index: parseInt(c.dataset.index) }))
                 .sort((a, b) => a.index - b.index);
             
@@ -1301,73 +1280,54 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelector('.filter-btn.active').classList.remove('active');
         btn.classList.add('active');
-        applyGenreFilterAndSearch();
+        
+        const filter = btn.dataset.filter;
+        const cards = document.querySelectorAll('.music-card');
+        
+        cards.forEach(card => {
+            const match = (filter === 'all' || card.dataset.genre === filter);
+            if (match) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
     });
 });
 
 // 搜索：按标题或歌手过滤
 const musicSearch = document.getElementById('musicSearch');
 if (musicSearch) {
-    musicSearch.addEventListener('input', applyGenreFilterAndSearch);
     const clearBtn = document.getElementById('musicSearchClear');
+    const doSearch = () => {
+        const q = musicSearch.value.trim().toLowerCase();
+        // 显示/隐藏清除按钮
+        if (clearBtn) {
+            clearBtn.style.display = q ? '' : 'none';
+        }
+        const cards = document.querySelectorAll('.music-card');
+        cards.forEach(card => {
+            const idx = parseInt(card.dataset.index);
+            const t = tracks[idx];
+            const hay = `${t?.title || ''} ${t?.artist || ''}`.toLowerCase();
+            const match = q === '' || hay.includes(q);
+            // 基于当前 genre 过滤状态再叠加搜索过滤
+            const genreFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+            const passGenre = (genreFilter === 'all' || card.dataset.genre === genreFilter);
+            if (match && passGenre) card.style.display = '';
+            else card.style.display = 'none';
+        });
+    };
+    musicSearch.addEventListener('input', doSearch);
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             musicSearch.value = '';
             musicSearch.focus();
-            applyGenreFilterAndSearch();
+            doSearch();
         });
     }
 }
-
-function applyGenreFilterAndSearch() {
-    const genreFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
-    const q = musicSearch?.value.trim().toLowerCase() || '';
-    const cards = document.querySelectorAll('.music-card');
-    
-    let visibleCount = 0;
-    
-    cards.forEach(card => {
-        const idx = parseInt(card.dataset.index);
-        if (Number.isNaN(idx) || idx < 0 || idx >= tracks.length) {
-            card.style.display = 'none';
-            card.classList.add('hidden');
-            return;
-        }
-        const t = tracks[idx];
-        if (!t) {
-            card.style.display = 'none';
-            card.classList.add('hidden');
-            return;
-        }
-        
-        // 确保 card 的 genre 属性与 track 的 genre 一致
-        const trackGenre = t.genre || 'for_you';
-        if (card.dataset.genre !== trackGenre) {
-            card.dataset.genre = trackGenre;
-        }
-        
-        // 检查流派过滤（使用 track 的 genre，确保准确性）
-        const passGenre = (genreFilter === 'all' || trackGenre === genreFilter);
-        // 检查搜索过滤
-        const hay = `${t?.title || ''} ${t?.artist || ''}`.toLowerCase();
-        const matchSearch = q === '' || hay.includes(q);
-        
-        if (passGenre && matchSearch) {
-            card.style.display = '';
-            card.classList.remove('hidden');
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-            card.classList.add('hidden');
-        }
-    });
-    
-    // 调试信息（仅在开发时使用）
-    if (visibleCount === 0 && cards.length > 0) {
-        console.log('No cards visible. Filter:', genreFilter, 'Search:', q, 'Total tracks:', tracks.length);
-    }
-}
-// ================= GitHub-only 上传/编辑（不做本地持久化） =================
+// ================= 从 GitHub 读取用户上传的歌曲 =================
 const GH_OWNER = 'Miao8-11';
 const GH_REPO = 'miao.github.io';
 const GH_BRANCH = 'main';
@@ -1376,37 +1336,13 @@ const DATA_JSON_PATH = 'data/user-tracks.json';
 // 初始化仅用内置曲库
 tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }));
 
-// 从 GitHub 刷新用户上传的歌曲列表
-async function refreshTracksFromGitHub() {
+// 启动时尝试从 GitHub 读取已上传的用户歌曲元数据并合并
+(async function bootstrapTracksFromGitHub() {
     try {
-        // 重新初始化 tracks，只保留内置曲库
-        tracks = musicTracks.map((t, i) => ({ ...t, id: `static-${i}`, isUser: false }));
-        
-        // 从 GitHub 获取最新的用户歌曲列表（带重试机制）
         const userTracks = await getUserTracksFromGitHubRaw();
         if (Array.isArray(userTracks)) {
-            // 按 createdAt 排序，确保新上传的歌曲在后面
-            const sortedTracks = userTracks.sort((a, b) => {
-                const timeA = a.createdAt || 0;
-                const timeB = b.createdAt || 0;
-                return timeA - timeB;
-            });
-            
-            sortedTracks.forEach(entry => {
+            userTracks.forEach(entry => {
                 // entry: { title, artist, genre, coverPath, musicPath, createdAt }
-                // 跳过 ethereal 相关歌曲
-                const title = (entry.title || '').toLowerCase();
-                if (title.includes('ethereal')) {
-                    console.log('Skipping ethereal song:', entry.title);
-                    return;
-                }
-                
-                // 验证必要字段
-                if (!entry.musicPath || !entry.coverPath) {
-                    console.warn('Skipping invalid entry (missing paths):', entry.title);
-                    return;
-                }
-                
                 const tr = {
                     id: `gh-${entry.createdAt || Date.now()}-${Math.random().toString(36).slice(2,8)}`,
                     title: entry.title || 'Untitled',
@@ -1414,19 +1350,13 @@ async function refreshTracksFromGitHub() {
                     genre: entry.genre || 'for_you',
                     cover: entry.coverPath?.startsWith('http') ? entry.coverPath : (RAW_BASE + (entry.coverPath || '')),
                     file: entry.musicPath?.startsWith('http') ? entry.musicPath : (RAW_BASE + (entry.musicPath || '')),
-                    isUser: true,
-                    coverPathRel: entry.coverPath || '',
-                    musicPathRel: entry.musicPath || ''
+                    isUser: true
                 };
                 // 基础校验：确保有文件链接
-                if (tr.file && tr.cover) {
+                if (tr.file) {
                     tracks.push(tr);
                 }
             });
-            
-            console.log(`Loaded ${sortedTracks.length} user tracks from GitHub`);
-        } else {
-            console.log('No user tracks found or invalid format');
         }
     } catch (e) {
         // 若文件不存在或网络问题，忽略，让默认曲库仍可用
@@ -1434,915 +1364,23 @@ async function refreshTracksFromGitHub() {
     } finally {
         loadMusic();
     }
-}
-
-// 启动时尝试从 GitHub 读取已上传的用户歌曲元数据并合并
-(async function bootstrapTracksFromGitHub() {
-    await refreshTracksFromGitHub();
 })();
 
-// 上传表单
-const addBtn = document.getElementById('addTrackBtn');
-const inAudio = document.getElementById('uploadAudioInput');
-const inCover = document.getElementById('uploadCoverInput');
-const inTitle = document.getElementById('uploadTitleInput');
-const inArtist = document.getElementById('uploadArtistInput');
-const inGenre = document.getElementById('uploadGenreSelect');
-
-if (addBtn) {
-    addBtn.addEventListener('click', async () => {
-        const audioFile = inAudio?.files?.[0] || null;
-        const coverFile = inCover?.files?.[0] || null;
-        const title = (inTitle?.value || '').trim();
-        const artist = (inArtist?.value || '').trim();
-        const genre = inGenre?.value || 'for_you';
-        const ghToken = document.getElementById('ghToken')?.value?.trim();
-        if (!audioFile || !coverFile || !title || !artist || !genre || !ghToken) {
-            alert('Please fill in all required fields and provide a GitHub token.');
-            return;
-        }
-        
-        // 显示加载状态
-        const originalBtnText = addBtn.textContent;
-        addBtn.textContent = 'Uploading...';
-        addBtn.disabled = true;
-        
-        try {
-            // 步骤1: 上传文件到 GitHub
-            addBtn.textContent = 'Uploading files...';
-            const nextCoverPath = await computeNextCoverPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, coverFile.name);
-            await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, nextCoverPath, coverFile, `Add cover ${nextCoverPath}`);
-            const musicPath = await computeMusicPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, audioFile.name);
-            await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, musicPath, audioFile, `Add audio ${musicPath}`);
-            
-            // 步骤2: 准备新歌数据
-            const createdAt = Date.now();
-            const newEntry = {
-                title,
-                artist,
-                genre,
-                coverPath: nextCoverPath,
-                musicPath,
-                createdAt
-            };
-            
-            // 步骤3: 同步更新 user-tracks.json（必须等待完成，确保数据保存）
-            addBtn.textContent = 'Saving to user-tracks.json...';
-            await upsertUserTracksJson(ghToken, newEntry);
-            console.log('User tracks JSON updated successfully');
-            
-            // 步骤4: 更新 script.js 中的 musicTracks 数组
-            addBtn.textContent = 'Updating script.js...';
-            try {
-                await updateScriptJsMusicTracks(ghToken, {
-                    title,
-                    artist,
-                    genre,
-                    file: musicPath,
-                    cover: nextCoverPath
-                });
-                console.log('Script.js updated successfully with new track');
-            } catch (e) {
-                console.warn('Failed to update script.js (non-critical):', e);
-                // 不抛出错误，因为 user-tracks.json 已经更新，新歌仍可通过 JSON 加载
-            }
-            
-            // 等待一小段时间，确保 GitHub API 完全更新
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // 步骤5: 重新从 GitHub 获取最新列表（包含刚上传的歌曲）
-            addBtn.textContent = 'Refreshing list...';
-            await refreshTracksFromGitHub();
-            
-            // 清空表单
-            if (inAudio) inAudio.value = '';
-            if (inCover) inCover.value = '';
-            if (inTitle) inTitle.value = '';
-            if (inArtist) inArtist.value = '';
-            if (inGenre) inGenre.value = 'for_you';
-            
-            alert('Uploaded successfully! Song added to the list.');
-        } catch (e) {
-            console.error('GitHub upload failed', e);
-            alert('GitHub upload failed: ' + (e.message || 'Unknown error') + '\nCheck console for details.');
-        } finally {
-            // 恢复按钮状态
-            addBtn.textContent = originalBtnText;
-            addBtn.disabled = false;
-        }
-    });
-}
-
-// 编辑弹窗
-const editModal = document.getElementById('editModal');
-const editCloseBtn = document.getElementById('editCloseBtn');
-const editTitle = document.getElementById('editTitleInput');
-const editArtist = document.getElementById('editArtistInput');
-const editGenre = document.getElementById('editGenreSelect');
-const editAudio = document.getElementById('editAudioInput');
-const editCover = document.getElementById('editCoverInput');
-const editSaveBtn = document.getElementById('editSaveBtn');
-const editDeleteBtn = document.getElementById('editDeleteBtn');
-let editingIndex = -1;
-
-function openEditModal(index) {
-    editingIndex = index;
-    const t = tracks[index];
-    if (!t) return;
-    if (editTitle) editTitle.value = t.title || '';
-    if (editArtist) editArtist.value = t.artist || '';
-    if (editGenre) editGenre.value = t.genre || 'for_you';
-    if (editAudio) editAudio.value = '';
-    if (editCover) editCover.value = '';
-    if (editModal) editModal.style.display = 'flex';
-    if (editDeleteBtn) editDeleteBtn.style.display = t.isUser ? '' : 'none';
-}
-function closeEditModal() {
-    if (editModal) editModal.style.display = 'none';
-    editingIndex = -1;
-}
-if (editCloseBtn) editCloseBtn.addEventListener('click', closeEditModal);
-if (editModal) {
-    editModal.addEventListener('click', (e) => {
-        if (e.target === editModal) closeEditModal();
-    });
-}
-if (editSaveBtn) {
-    editSaveBtn.addEventListener('click', async () => {
-        if (editingIndex < 0) return;
-        const t = tracks[editingIndex];
-        if (!t) return;
-        if (!t.isUser) {
-            alert('Only user-uploaded tracks can be edited with GitHub sync.');
-            return;
-        }
-        const newTitle = (editTitle?.value || '').trim();
-        const newArtist = (editArtist?.value || '').trim();
-        const newGenre = editGenre?.value || 'for_you';
-        const newAudio = editAudio?.files?.[0] || null;
-        const newCover = editCover?.files?.[0] || null;
-        const ghToken = document.getElementById('ghTokenEdit')?.value?.trim();
-        if (!newTitle || !newArtist || !newGenre || !ghToken) {
-            alert('Please fill in Title/Artist/Genre and provide GitHub token.');
-            return;
-        }
-        try {
-            let updatedCover = t.cover;
-            let updatedFile = t.file;
-            let coverRel = t.coverPathRel || getRelativePathFromRaw(t.cover);
-            let musicRel = t.musicPathRel || getRelativePathFromRaw(t.file);
-            if (newCover) {
-                const nextCoverPath = await computeNextCoverPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, newCover.name);
-                await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, nextCoverPath, newCover, `Add cover ${nextCoverPath}`);
-                updatedCover = RAW_BASE + nextCoverPath;
-                coverRel = nextCoverPath;
-            }
-            if (newAudio) {
-                const musicPath = await computeMusicPathOnGitHub(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, newAudio.name);
-                await githubUploadFile(ghToken, GH_OWNER, GH_REPO, GH_BRANCH, musicPath, newAudio, `Add audio ${musicPath}`);
-                updatedFile = RAW_BASE + musicPath;
-                musicRel = musicPath;
-            }
-            // 同步更新 user-tracks.json（必须等待完成，确保数据保存）
-            await upsertUserTracksJson(ghToken, {
-                title: newTitle,
-                artist: newArtist,
-                genre: newGenre,
-                coverPath: coverRel,
-                musicPath: musicRel,
-                createdAt: t.id ? (parseInt(t.id.split('-')[1]) || Date.now()) : Date.now()
-            });
-            console.log('User tracks JSON updated successfully');
-            
-            // 如果修改了文件路径，需要更新 script.js
-            if (newAudio || newCover) {
-                try {
-                    // 删除旧的条目并添加新的（通过更新 script.js）
-                    // 注意：编辑时通常不改变文件路径，所以这里先跳过 script.js 更新
-                    // 如果路径改变了，需要删除旧条目并添加新条目
-                    console.log('File paths changed, but script.js update skipped for edits');
-                } catch (e) {
-                    console.warn('Failed to update script.js (non-critical):', e);
-                }
-            }
-            
-            // 等待一小段时间，确保 GitHub API 完全更新
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            // 重新从 GitHub 获取最新列表（确保数据同步）
-            await refreshTracksFromGitHub();
-        } catch (e) {
-            console.error('GitHub upload failed', e);
-            alert('GitHub upload failed: ' + (e.message || 'Unknown error') + '\nCheck console for details.');
-            return;
-        }
-        closeEditModal();
-        alert('Saved successfully! Changes applied.');
-    });
-}
-if (editDeleteBtn) {
-    editDeleteBtn.addEventListener('click', async () => {
-        if (editingIndex < 0) return;
-        const t = tracks[editingIndex];
-        if (!t) return;
-        if (!t.isUser) {
-            alert('Only user-uploaded tracks can be deleted from GitHub.');
-            return;
-        }
-        const token = document.getElementById('ghTokenEdit')?.value?.trim();
-        if (!token) {
-            alert('Please provide GitHub token to delete files from repository.');
-            return;
-        }
-        try {
-            // 推断相对路径
-            const coverRel = t.coverPathRel || getRelativePathFromRaw(t.cover);
-            const audioRel = t.musicPathRel || getRelativePathFromRaw(t.file);
-            if (audioRel) {
-                await githubDeleteFile(token, GH_OWNER, GH_REPO, GH_BRANCH, audioRel, `Delete ${audioRel}`);
-            }
-            if (coverRel) {
-                await githubDeleteFile(token, GH_OWNER, GH_REPO, GH_BRANCH, coverRel, `Delete ${coverRel}`);
-            }
-            // 同步从 user-tracks.json 移除（必须等待完成，确保数据保存）
-            if (audioRel) {
-                await removeFromUserTracksJson(token, audioRel, coverRel);
-                console.log('User tracks JSON updated successfully');
-            }
-            
-            // 从 script.js 中删除歌曲条目
-            try {
-                await removeFromScriptJsMusicTracks(token, {
-                    title: t.title,
-                    artist: t.artist,
-                    file: audioRel || t.file,
-                    cover: coverRel || t.cover
-                });
-                console.log('Script.js updated successfully (removed track)');
-            } catch (e) {
-                console.warn('Failed to remove from script.js (non-critical):', e);
-                // 不抛出错误，因为 user-tracks.json 已经更新
-            }
-            
-            // 等待一小段时间，确保 GitHub API 完全更新
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // 重新从 GitHub 获取最新列表（确保数据同步）
-            await refreshTracksFromGitHub();
-            
-            closeEditModal();
-            alert('Deleted successfully! Song removed from the list.');
-        } catch (e) {
-            console.error('GitHub delete failed', e);
-            alert('GitHub delete failed. Check console for details.');
-        }
-    });
-}
-
-// ================= GitHub upload helpers =================
-async function githubUploadFile(token, owner, repo, branch, path, file, message) {
-    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
-    const content = await fileToBase64(file);
-    // Check if file exists to include sha when overwriting
-    const existing = await githubGetFileMeta(token, owner, repo, branch, path);
-    const body = {
-        message: message || `Add ${path}`,
-        content,
-        branch
-    };
-    if (existing && existing.sha) {
-        body.sha = existing.sha;
-    }
-    const res = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`GitHub PUT ${path} failed: ${res.status} ${txt}`);
-    }
-    return res.json();
-}
-
-async function githubGetFileMeta(token, owner, repo, branch, path) {
-    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
-    const res = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json'
-        }
-    });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`GitHub GET ${path} failed: ${res.status} ${txt}`);
-    }
-    return res.json();
-}
-
-async function fileToBase64(file) {
-    const buffer = await file.arrayBuffer();
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-    }
-    return btoa(binary);
-}
-
-function getNextLocalCoverIndex() {
-    // find max N from covers like images/coverN.*
-    let maxN = 0;
-    tracks.forEach(t => {
-        const rel = t.coverPathRel || getRelativePathFromRaw(t.cover);
-        const target = rel || t.cover;
-        const m = typeof target === 'string' ? target.match(/images\/cover(\d+)\./i) : null;
-        if (m) {
-            const n = parseInt(m[1], 10);
-            if (!isNaN(n)) maxN = Math.max(maxN, n);
-        }
-    });
-    // default covers up to 33 exist, so start after
-    if (maxN < 33) maxN = 33;
-    return maxN + 1;
-}
-
-async function computeNextCoverPathOnGitHub(token, owner, repo, branch, originalName) {
-    const ext = (originalName.split('.').pop() || 'jpg').toLowerCase();
-    let n = getNextLocalCoverIndex();
-    // try until we find a free path
-    for (let i = 0; i < 50; i++) {
-        const path = `images/cover${n}.${ext}`;
-        const exists = await githubGetFileMeta(token, owner, repo, branch, path);
-        if (!exists) return path;
-        n++;
-    }
-    // fallback to timestamp
-    return `images/cover-${Date.now()}.${ext}`;
-}
-
-async function computeMusicPathOnGitHub(token, owner, repo, branch, originalName) {
-    const ext = (originalName.split('.').pop() || 'mp3').toLowerCase();
-    let n = getNextLocalTrackIndex();
-    for (let i = 0; i < 200; i++) {
-        const path = `music/track${n}.${ext}`;
-        const exists = await githubGetFileMeta(token, owner, repo, branch, path);
-        if (!exists) return path;
-        n++;
-    }
-    return `music/track-${Date.now()}.${ext}`;
-}
-
-function sanitizeFileName(name) {
-    return name.replace(/[^\w.\-]+/g, '_');
-}
-
-function getNextLocalTrackIndex() {
-    // find max N from tracks like music/trackN.*
-    let maxN = 0;
-    tracks.forEach(t => {
-        const rel = t.musicPathRel || getRelativePathFromRaw(t.file);
-        const target = rel || t.file;
-        const m = typeof target === 'string' ? target.match(/music\/track(\d+)\./i) : null;
-        if (m) {
-            const n = parseInt(m[1], 10);
-            if (!isNaN(n)) maxN = Math.max(maxN, n);
-        }
-    });
-    if (maxN < 33) maxN = 33;
-    return maxN + 1;
-}
 
 // 读取 RAW JSON（无需 token）
-async function getUserTracksFromGitHubRaw(retryCount = 0) {
+async function getUserTracksFromGitHubRaw() {
     try {
-        // 使用多个时间戳参数和随机数强制刷新，避免浏览器/CDN缓存
-        const timestamp = Date.now();
-        const random = Math.random().toString(36).slice(2);
-        const url = `${RAW_BASE}${DATA_JSON_PATH}?t=${timestamp}&_=${Date.now()}&r=${random}&nocache=${timestamp}`;
-        
-        const res = await fetch(url, { 
-            method: 'GET',
-            cache: 'no-store',
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-                'If-None-Match': '', // 强制不使用 ETag 缓存
-                'If-Modified-Since': '' // 强制不使用 Last-Modified 缓存
-            }
-        });
-        
-        if (!res.ok) {
-            if (res.status === 404) {
-                console.log('user-tracks.json not found, returning empty array');
-                return []; // 文件不存在，返回空数组
-            }
-            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
+        const res = await fetch(RAW_BASE + DATA_JSON_PATH, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        if (Array.isArray(json)) {
-            // 过滤掉可能的 ethereal 歌曲
-            const filtered = json.filter(entry => {
-                if (!entry) return false;
-                const title = (entry.title || '').toLowerCase();
-                return !title.includes('ethereal');
-            });
-            console.log(`Fetched ${filtered.length} tracks from user-tracks.json (filtered ${json.length - filtered.length} ethereal)`);
-            return filtered;
-        }
-        console.warn('user-tracks.json is not an array:', typeof json);
+        if (Array.isArray(json)) return json;
         return [];
     } catch (e) {
-        // 如果失败且还有重试次数，等待后重试
-        if (retryCount < 2) {
-            const waitTime = 1000 * (retryCount + 1);
-            console.log(`Retry ${retryCount + 1}/2 after ${waitTime}ms...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-            return getUserTracksFromGitHubRaw(retryCount + 1);
-        }
         // 不存在或解析失败
-        console.warn('Failed to fetch user-tracks.json after retries:', e?.message || e);
         return [];
     }
 }
 
-function base64ToString(b64) {
-    try {
-        return decodeURIComponent(escape(atob(b64)));
-    } catch {
-        // 兼容大文件：使用 TextDecoder
-        const raw = atob(b64);
-        const bytes = new Uint8Array([...raw].map(c => c.charCodeAt(0)));
-        return new TextDecoder().decode(bytes);
-    }
-}
-
-// 追加/创建仓库中的 user-tracks.json
-async function upsertUserTracksJson(token, newEntry) {
-    // 先拿 meta（是否存在 & sha）
-    let meta = null;
-    try {
-        meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, DATA_JSON_PATH);
-    } catch (e) {
-        meta = null;
-    }
-    let list = [];
-    let sha = null;
-    if (meta && meta.content) {
-        sha = meta.sha;
-        try {
-            const contentStr = base64ToString(meta.content);
-            const parsed = JSON.parse(contentStr);
-            if (Array.isArray(parsed)) list = parsed;
-        } catch(e) {
-            list = [];
-        }
-    }
-    const normalizedMusicPath = newEntry.musicPath || '';
-    if (!normalizedMusicPath) return; // 没有明确音频路径则跳过写入
-    const normalizedCoverPath = newEntry.coverPath || '';
-    // 过滤掉已存在的相同路径，同时过滤掉 ethereal 相关歌曲
-    list = list.filter(item => {
-        if (!item) return false;
-        // 移除相同路径的旧记录
-        if (item.musicPath === normalizedMusicPath) return false;
-        // 移除 ethereal 相关歌曲
-        const title = (item.title || '').toLowerCase();
-        if (title.includes('ethereal')) {
-            console.log('Removing ethereal song from JSON:', item.title);
-            return false;
-        }
-        return true;
-    });
-    list.push({
-        title: newEntry.title || 'Untitled',
-        artist: newEntry.artist || 'Unknown',
-        genre: newEntry.genre || 'for_you',
-        coverPath: normalizedCoverPath,
-        musicPath: normalizedMusicPath,
-        createdAt: newEntry.createdAt || Date.now()
-    });
-    const bodyStr = JSON.stringify(list, null, 2);
-    const blob = new Blob([bodyStr], { type: 'application/json' });
-    // 使用已有工具上传（支持含 sha 覆盖）
-    const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(DATA_JSON_PATH)}`;
-    const contentB64 = await (async () => {
-        const buf = await blob.arrayBuffer();
-        let binary = '';
-        const bytes = new Uint8Array(buf);
-        const chunk = 0x8000;
-        for (let i = 0; i < bytes.length; i += chunk) {
-            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-        }
-        return btoa(binary);
-    })();
-    const reqBody = {
-        message: meta ? `Update ${DATA_JSON_PATH}` : `Create ${DATA_JSON_PATH}`,
-        content: contentB64,
-        branch: GH_BRANCH
-    };
-    if (sha) reqBody.sha = sha;
-    const res = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reqBody)
-    });
-    if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`GitHub PUT ${DATA_JSON_PATH} failed: ${res.status} ${txt}`);
-    }
-    return res.json();
-}
-
-// 从 user-tracks.json 移除某条（通过 musicPath 精确匹配）
-async function removeFromUserTracksJson(token, musicPathRel, coverPathRel = '') {
-    let meta = null;
-    try { meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, DATA_JSON_PATH); } catch {}
-    if (!meta || !meta.content) return; // 没有索引文件可跳过
-    let list = [];
-    try {
-        const contentStr = base64ToString(meta.content);
-        const parsed = JSON.parse(contentStr);
-        if (Array.isArray(parsed)) list = parsed;
-    } catch {}
-    // 过滤掉要删除的歌曲，同时过滤掉 ethereal 相关歌曲
-    const filtered = list.filter(x => {
-        if (!x) return false;
-        // 删除匹配的歌曲
-        if (x.musicPath === musicPathRel || x.coverPath === coverPathRel) return false;
-        // 删除 ethereal 相关歌曲
-        const title = (x.title || '').toLowerCase();
-        if (title.includes('ethereal')) {
-            console.log('Removing ethereal song from JSON:', x.title);
-            return false;
-        }
-        return true;
-    });
-    if (filtered.length === list.length) return; // 没有变化
-    const bodyStr = JSON.stringify(filtered, null, 2);
-    const blob = new Blob([bodyStr], { type: 'application/json' });
-    const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(DATA_JSON_PATH)}`;
-    const buf = await blob.arrayBuffer();
-    let binary = '';
-    const bytes = new Uint8Array(buf);
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-    }
-    const contentB64 = btoa(binary);
-    const reqBody = {
-        message: `Update ${DATA_JSON_PATH} (remove ${musicPathRel})`,
-        content: contentB64,
-        branch: GH_BRANCH,
-        sha: meta.sha
-    };
-    const res = await fetch(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reqBody)
-    });
-    if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`GitHub PUT ${DATA_JSON_PATH} failed: ${res.status} ${txt}`);
-    }
-    return res.json();
-}
-
-// 删除仓库文件（需要 sha）
-async function githubDeleteFile(token, owner, repo, branch, path, message) {
-    const meta = await githubGetFileMeta(token, owner, repo, branch, path);
-    if (!meta || !meta.sha) throw new Error(`File not found: ${path}`);
-    const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`;
-    const res = await fetch(url, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            message: message || `Delete ${path}`,
-            sha: meta.sha,
-            branch
-        })
-    });
-    if (!res.ok) {
-        const txt = await res.text().catch(()=> '');
-        throw new Error(`GitHub DELETE ${path} failed: ${res.status} ${txt}`);
-    }
-    return res.json();
-}
-
-function getRelativePathFromRaw(url) {
-    if (!url) return '';
-    if (url.startsWith(RAW_BASE)) return url.slice(RAW_BASE.length);
-    if (url.startsWith('https://github.com/') && url.includes('/raw/')) {
-        const parts = url.split('/raw/');
-        return parts[1] || '';
-    }
-    if (url.startsWith('http')) return '';
-    return url;
-}
-
-// 从 script.js 中删除指定歌曲条目
-async function removeFromScriptJsMusicTracks(token, trackToRemove) {
-    try {
-        const scriptPath = 'script.js';
-        const meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, scriptPath);
-        if (!meta || !meta.content) {
-            throw new Error('Failed to read script.js from GitHub');
-        }
-        
-        const scriptContent = base64ToString(meta.content);
-        const tracksStartMarker = 'const musicTracks = [';
-        const startIndex = scriptContent.indexOf(tracksStartMarker);
-        if (startIndex === -1) {
-            throw new Error('Could not find musicTracks array in script.js');
-        }
-        
-        const arrayStart = startIndex + tracksStartMarker.length;
-        let braceCount = 0;
-        let inString = false;
-        let stringChar = null;
-        let arrayEnd = -1;
-        
-        for (let i = arrayStart; i < scriptContent.length; i++) {
-            const char = scriptContent[i];
-            const prevChar = i > 0 ? scriptContent[i - 1] : '';
-            
-            if (!inString && (char === '"' || char === "'" || char === '`')) {
-                inString = true;
-                stringChar = char;
-            } else if (inString && char === stringChar && prevChar !== '\\') {
-                inString = false;
-                stringChar = null;
-            }
-            
-            if (!inString) {
-                if (char === '[') braceCount++;
-                else if (char === ']') {
-                    braceCount--;
-                    if (braceCount === 0) {
-                        arrayEnd = i;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        if (arrayEnd === -1) {
-            throw new Error('Could not find end of musicTracks array');
-        }
-        
-        const arrayContent = scriptContent.substring(arrayStart, arrayEnd);
-        
-        // 找到要删除的条目（通过 file 或 cover 路径匹配）
-        // 提取相对路径用于匹配
-        const filePath = trackToRemove.file || '';
-        const coverPath = trackToRemove.cover || '';
-        
-        // 获取相对路径（去掉 RAW_BASE 前缀）
-        const fileRel = filePath.startsWith(RAW_BASE) ? filePath.slice(RAW_BASE.length) : filePath;
-        const coverRel = coverPath.startsWith(RAW_BASE) ? coverPath.slice(RAW_BASE.length) : coverPath;
-        
-        // 提取文件名用于匹配
-        const fileName = fileRel.split('/').pop() || fileRel;
-        const coverName = coverRel.split('/').pop() || coverRel;
-        
-        const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const filePattern = escapeRegex(fileName);
-        const coverPattern = escapeRegex(coverName);
-        
-        // 匹配包含该文件路径的条目（匹配 file 或 cover 字段）
-        // 使用多行模式匹配整个对象
-        const patterns = [];
-        if (filePattern) patterns.push(`file:\\s*['"][^'"]*${filePattern}[^'"]*['"]`);
-        if (coverPattern) patterns.push(`cover:\\s*['"][^'"]*${coverPattern}[^'"]*['"]`);
-        
-        if (patterns.length === 0) {
-            throw new Error('No file or cover path provided for matching');
-        }
-        
-        // 构建正则表达式：匹配包含这些路径的对象
-        const patternStr = patterns.join('|');
-        // 匹配整个对象，从 { 开始到 } 结束，包括前面的空白和后面的逗号
-        const regex = new RegExp(`\\s*\\{[^}]*(${patternStr})[^}]*\\},?\\s*\\n?`, 'g');
-        let updatedArrayContent = arrayContent.replace(regex, '');
-        
-        // 清理多余的逗号和空白
-        // 移除连续的空行
-        updatedArrayContent = updatedArrayContent.replace(/\n\s*\n\s*\n/g, '\n');
-        // 移除数组末尾的逗号（在 ] 之前的逗号）
-        updatedArrayContent = updatedArrayContent.replace(/,(\s*\n\s*\]|$)/g, '$1');
-        // 移除开头和结尾的空白行
-        updatedArrayContent = updatedArrayContent.trim();
-        
-        const beforeArray = scriptContent.substring(0, arrayStart);
-        const afterArray = scriptContent.substring(arrayEnd);
-        const updatedContent = beforeArray + cleanedArray + afterArray;
-        
-        const updatedBase64 = await (async () => {
-            const encoder = new TextEncoder();
-            const bytes = encoder.encode(updatedContent);
-            let binary = '';
-            const chunk = 0x8000;
-            for (let i = 0; i < bytes.length; i += chunk) {
-                binary += String.fromCharCode.apply(null, Array.from(bytes.slice(i, i + chunk)));
-            }
-            return btoa(binary);
-        })();
-        
-        const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(scriptPath)}`;
-        const reqBody = {
-            message: `Remove track: ${trackToRemove.title} by ${trackToRemove.artist}`,
-            content: updatedBase64,
-            branch: GH_BRANCH,
-            sha: meta.sha
-        };
-        
-        const res = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reqBody)
-        });
-        
-        if (!res.ok) {
-            const txt = await res.text().catch(() => '');
-            throw new Error(`GitHub PUT script.js failed: ${res.status} ${txt}`);
-        }
-        
-        console.log('Successfully removed track from script.js');
-        return res.json();
-    } catch (e) {
-        console.error('Failed to remove from script.js:', e);
-        throw e;
-    }
-}
-
-// 更新 GitHub 上的 script.js 文件中的 musicTracks 数组
-async function updateScriptJsMusicTracks(token, newTrack) {
-    try {
-        // 步骤1: 读取 GitHub 上的 script.js 文件
-        const scriptPath = 'script.js';
-        const meta = await githubGetFileMeta(token, GH_OWNER, GH_REPO, GH_BRANCH, scriptPath);
-        if (!meta || !meta.content) {
-            throw new Error('Failed to read script.js from GitHub');
-        }
-        
-        // 步骤2: 解码文件内容（正确处理 UTF-8）
-        const scriptContent = base64ToString(meta.content);
-        
-        // 步骤3: 找到 musicTracks 数组的位置
-        const tracksStartMarker = 'const musicTracks = [';
-        const tracksEndMarker = '];';
-        
-        const startIndex = scriptContent.indexOf(tracksStartMarker);
-        if (startIndex === -1) {
-            throw new Error('Could not find musicTracks array in script.js');
-        }
-        
-        // 找到数组结束位置（]; 在 musicTracks 定义之后）
-        const arrayStart = startIndex + tracksStartMarker.length;
-        let braceCount = 0;
-        let inString = false;
-        let stringChar = null;
-        let arrayEnd = -1;
-        
-        for (let i = arrayStart; i < scriptContent.length; i++) {
-            const char = scriptContent[i];
-            const prevChar = i > 0 ? scriptContent[i - 1] : '';
-            
-            // 处理字符串（跳过字符串内的字符）
-            if (!inString && (char === '"' || char === "'" || char === '`')) {
-                inString = true;
-                stringChar = char;
-            } else if (inString && char === stringChar && prevChar !== '\\') {
-                inString = false;
-                stringChar = null;
-            }
-            
-            if (!inString) {
-                if (char === '[') braceCount++;
-                else if (char === ']') {
-                    braceCount--;
-                    if (braceCount === 0) {
-                        arrayEnd = i;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        if (arrayEnd === -1) {
-            throw new Error('Could not find end of musicTracks array');
-        }
-        
-        // 步骤4: 提取数组内容（保留原始格式）
-        const arrayContent = scriptContent.substring(arrayStart, arrayEnd);
-        
-        // 步骤5: 准备新歌曲条目（转义单引号和特殊字符）
-        const escapeSingleQuote = (str) => {
-            if (!str) return '';
-            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-        };
-        const newTrackLine = `    { title: '${escapeSingleQuote(newTrack.title)}', artist: '${escapeSingleQuote(newTrack.artist)}', genre: '${newTrack.genre}', file: '${newTrack.file}', cover: '${newTrack.cover}' }`;
-        
-        // 步骤6: 在数组末尾添加新条目
-        // 找到最后一个非空白字符的位置
-        let lastNonWhitespace = arrayContent.length - 1;
-        while (lastNonWhitespace >= 0 && /\s/.test(arrayContent[lastNonWhitespace])) {
-            lastNonWhitespace--;
-        }
-        
-        let updatedArrayContent;
-        if (lastNonWhitespace < 0) {
-            // 数组为空
-            updatedArrayContent = newTrackLine;
-        } else {
-            // 检查最后一个字符是否是逗号
-            const lastChar = arrayContent[lastNonWhitespace];
-            const beforeLast = arrayContent.substring(0, lastNonWhitespace + 1);
-            const afterLast = arrayContent.substring(lastNonWhitespace + 1);
-            
-            if (lastChar === ',') {
-                // 如果最后有逗号，直接添加新条目
-                updatedArrayContent = beforeLast + '\n' + newTrackLine + afterLast;
-            } else {
-                // 如果最后没有逗号，添加逗号后再添加新条目
-                updatedArrayContent = beforeLast + ',\n' + newTrackLine + afterLast;
-            }
-        }
-        
-        // 步骤7: 重构文件内容（保持原有格式）
-        const beforeArray = scriptContent.substring(0, arrayStart);
-        const afterArray = scriptContent.substring(arrayEnd);
-        const updatedContent = beforeArray + updatedArrayContent + afterArray;
-        
-        // 步骤8: 将更新后的内容编码为 base64（正确处理 UTF-8）
-        const updatedBase64 = await (async () => {
-            // 使用 TextEncoder 正确处理 UTF-8 编码
-            const encoder = new TextEncoder();
-            const bytes = encoder.encode(updatedContent);
-            // 将字节数组转换为 base64
-            let binary = '';
-            const chunk = 0x8000;
-            for (let i = 0; i < bytes.length; i += chunk) {
-                binary += String.fromCharCode.apply(null, Array.from(bytes.slice(i, i + chunk)));
-            }
-            return btoa(binary);
-        })();
-        
-        // 步骤9: 上传更新后的 script.js 文件
-        const url = `https://api.github.com/repos/${encodeURIComponent(GH_OWNER)}/${encodeURIComponent(GH_REPO)}/contents/${encodeURIComponent(scriptPath)}`;
-        const reqBody = {
-            message: `Add track: ${newTrack.title} by ${newTrack.artist}`,
-            content: updatedBase64,
-            branch: GH_BRANCH,
-            sha: meta.sha
-        };
-        
-        const res = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reqBody)
-        });
-        
-        if (!res.ok) {
-            const txt = await res.text().catch(() => '');
-            throw new Error(`GitHub PUT script.js failed: ${res.status} ${txt}`);
-        }
-        
-        console.log('Successfully updated script.js with new track');
-        return res.json();
-    } catch (e) {
-        console.error('Failed to update script.js:', e);
-        throw e;
-    }
-}
 
 // 全局：为其它按钮添加 click 音（避免与播放/进度条重复触发）
 document.addEventListener('click', (ev) => {
@@ -2371,37 +1409,216 @@ const photos = [
     { image: 'images/photo9.svg', caption: 'Cyberpunk City 🏙️' }
 ];
 
-function loadPhotos() {
-    const grid = document.getElementById('photosGrid');
-    grid.innerHTML = '';
+const photosPerPage = 5;
+let currentPhotoPage = 0;
+const totalPhotoPages = Math.max(1, Math.ceil(photos.length / photosPerPage));
+
+const photoAlbumState = {
+    container: null,
+    book: null,
+    currentPageEl: null,
+    flipPageEl: null,
+    indicatorEl: null,
+    busy: false
+};
+
+function computePhotoVariation(photoIndex) {
+    const base = photoIndex + 1;
+    const angle = Math.sin(base * 1.37) * 5; // -5° ~ 5°
+    const offsetX = Math.sin(base * 2.11) * 12; // -12px ~ 12px
+    const offsetY = Math.cos(base * 1.73) * 6;  // -6px ~ 6px
+    return {
+        angle: Number(angle.toFixed(2)),
+        offsetX: Number(offsetX.toFixed(1)),
+        offsetY: Number(offsetY.toFixed(1))
+    };
+}
+
+function renderAlbumPage(targetEl, pageIndex, { interactive = true } = {}) {
+    if (!targetEl) return;
     
-    photos.forEach((photo, index) => {
-        const card = document.createElement('div');
-        card.className = 'photo-card';
-        card.dataset.photoIndex = index;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'album-page-content';
+    wrapper.dataset.page = String(pageIndex);
+    
+    const distribution = (pageIndex % 2 === 0) ? [2, 3] : [3, 2];
+    const pageStart = pageIndex * photosPerPage;
+    let slotIndex = 0;
+    
+    const createCard = (photoIndex) => {
+        const slot = document.createElement('div');
+        slot.className = 'album-photo';
         
-        // Polaroid wrapper
-        const polaroid = document.createElement('div');
-        polaroid.className = 'polaroid';
-        // 随机轻微旋转（-3° ~ 3°）
-        const angle = (Math.random() * 6 - 3).toFixed(2);
-        polaroid.style.transform = `rotate(${angle}deg)`;
-
-        const tape = document.createElement('div');
-        tape.className = 'tape';
-        const img = document.createElement('img');
-        img.src = photo.image;
-        img.alt = '';
-
-        polaroid.appendChild(tape);
-        polaroid.appendChild(img);
-
-        card.appendChild(polaroid);
-
-        // 点击打开灯箱
-        card.addEventListener('click', () => openLightbox(index));
+        if (photoIndex < photos.length) {
+            const variation = computePhotoVariation(photoIndex);
+            slot.style.setProperty('--tilt-angle', `${variation.angle}deg`);
+            slot.style.setProperty('--tilt-x', `${variation.offsetX}px`);
+            slot.style.setProperty('--tilt-y', `${variation.offsetY}px`);
+            slot.style.setProperty('--tape-angle', `${(variation.angle * 0.6).toFixed(2)}deg`);
+            slot.dataset.photoIndex = String(photoIndex);
+            slot.classList.add(`album-photo--filter-${(photoIndex % 3) + 1}`);
+            
+            const photo = photos[photoIndex];
+            const image = document.createElement('div');
+            image.className = 'album-photo-image';
+            image.style.backgroundImage = `url('${photo.image}')`;
+            slot.appendChild(image);
+            
+            if (photo.caption) {
+                const caption = document.createElement('span');
+                caption.className = 'album-photo-caption';
+                caption.textContent = photo.caption;
+                slot.appendChild(caption);
+            }
+            
+            if (interactive) {
+                slot.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openLightbox(photoIndex);
+                });
+            }
+        } else {
+            slot.classList.add('album-photo--empty');
+            slot.style.setProperty('--tilt-angle', '0deg');
+            slot.style.setProperty('--tilt-x', '0px');
+            slot.style.setProperty('--tilt-y', '0px');
+            slot.style.setProperty('--tape-angle', '0deg');
+        }
         
-        grid.appendChild(card);
+        return slot;
+    };
+    
+    distribution.forEach((count, rowIdx) => {
+        const row = document.createElement('div');
+        row.className = 'album-row';
+        row.dataset.count = String(count);
+        row.dataset.row = String(rowIdx);
+        
+        for (let c = 0; c < count; c += 1) {
+            const card = createCard(pageStart + slotIndex);
+            row.appendChild(card);
+            slotIndex += 1;
+        }
+        
+        wrapper.appendChild(row);
+    });
+    
+    targetEl.innerHTML = '';
+    targetEl.appendChild(wrapper);
+}
+
+function updateAlbumIndicator() {
+    if (!photoAlbumState.indicatorEl) return;
+    photoAlbumState.indicatorEl.textContent = `第 ${currentPhotoPage + 1} 页 / 共 ${totalPhotoPages} 页`;
+}
+
+function triggerAlbumShake(side = 'right') {
+    if (!photoAlbumState.book) return;
+    const shakeClass = side === 'left' ? 'album-book--shake-left' : 'album-book--shake-right';
+    photoAlbumState.book.classList.remove('album-book--shake-left', 'album-book--shake-right');
+    void photoAlbumState.book.offsetWidth; // 强制重绘
+    photoAlbumState.book.classList.add(shakeClass);
+}
+
+function turnAlbumPage(direction) {
+    if (!photoAlbumState.book || photoAlbumState.busy) return;
+    
+    const delta = direction === 'next' ? 1 : -1;
+    const targetPage = currentPhotoPage + delta;
+    
+    if (targetPage < 0) {
+        triggerAlbumShake('left');
+        return;
+    }
+    
+    if (targetPage >= totalPhotoPages) {
+        triggerAlbumShake('right');
+        return;
+    }
+    
+    photoAlbumState.busy = true;
+    
+    const turnClass = direction === 'next' ? 'album-book--turn-right' : 'album-book--turn-left';
+    photoAlbumState.book.classList.remove('album-book--turn-right', 'album-book--turn-left');
+    void photoAlbumState.book.offsetWidth;
+    photoAlbumState.book.classList.add(turnClass);
+    
+    if (photoAlbumState.flipPageEl) {
+        const flipSource = currentPhotoPage;
+        renderAlbumPage(photoAlbumState.flipPageEl, flipSource, { interactive: false });
+        photoAlbumState.flipPageEl.classList.remove('album-page--turning-right', 'album-page--turning-left', 'album-page--animating');
+        void photoAlbumState.flipPageEl.offsetWidth;
+        photoAlbumState.flipPageEl.classList.add(
+            'album-page--animating',
+            direction === 'next' ? 'album-page--turning-right' : 'album-page--turning-left'
+        );
+    }
+    
+    const updateCurrentPage = () => {
+        currentPhotoPage = targetPage;
+        renderAlbumPage(photoAlbumState.currentPageEl, currentPhotoPage);
+        updateAlbumIndicator();
+    };
+    
+    const handleFlipEnd = () => {
+        if (photoAlbumState.flipPageEl) {
+            photoAlbumState.flipPageEl.classList.remove(
+                'album-page--animating',
+                'album-page--turning-right',
+                'album-page--turning-left'
+            );
+        }
+        updateCurrentPage();
+    };
+    
+    if (photoAlbumState.flipPageEl) {
+        photoAlbumState.flipPageEl.addEventListener('animationend', handleFlipEnd, { once: true });
+    } else {
+        setTimeout(updateCurrentPage, 280);
+    }
+    
+    const handleBookAnimationEnd = (event) => {
+        if (event.animationName !== 'albumTurnRight' && event.animationName !== 'albumTurnLeft') return;
+        photoAlbumState.book.classList.remove('album-book--turn-right', 'album-book--turn-left');
+        photoAlbumState.book.removeEventListener('animationend', handleBookAnimationEnd);
+        photoAlbumState.busy = false;
+    };
+    
+    photoAlbumState.book.addEventListener('animationend', handleBookAnimationEnd);
+}
+
+function handleAlbumClick(event) {
+    if (!photoAlbumState.book) return;
+    const rect = photoAlbumState.book.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const direction = clickX >= rect.width / 2 ? 'next' : 'prev';
+    turnAlbumPage(direction);
+}
+
+function initPhotoAlbum() {
+    const container = document.getElementById('photoAlbum');
+    const book = document.getElementById('albumBook');
+    const currentPageEl = document.getElementById('albumCurrentPage');
+    const flipPageEl = document.getElementById('albumFlipPage');
+    const indicatorEl = document.getElementById('albumPageIndicator');
+    
+    photoAlbumState.container = container;
+    photoAlbumState.book = book;
+    photoAlbumState.currentPageEl = currentPageEl;
+    photoAlbumState.flipPageEl = flipPageEl;
+    photoAlbumState.indicatorEl = indicatorEl;
+    
+    if (!container || !book || !currentPageEl) return;
+    
+    renderAlbumPage(currentPageEl, currentPhotoPage);
+    updateAlbumIndicator();
+    
+    book.addEventListener('click', handleAlbumClick);
+    
+    book.addEventListener('animationend', (event) => {
+        if (event.animationName === 'albumShakeLeft' || event.animationName === 'albumShakeRight') {
+            book.classList.remove('album-book--shake-left', 'album-book--shake-right');
+        }
     });
 }
 
@@ -2450,7 +1667,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-loadPhotos();
+initPhotoAlbum();
 
 // ==========================================
 // GAMES DATA
